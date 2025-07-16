@@ -1,0 +1,563 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXContainerItemProxy section */
+		F2CEAA052E27849100952BBE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F2CEA9EF2E27849000952BBE /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F2CEA9F62E27849000952BBE;
+			remoteInfo = "Aptos Passport KYC";
+		};
+		F2CEAA0F2E27849100952BBE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F2CEA9EF2E27849000952BBE /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F2CEA9F62E27849000952BBE;
+			remoteInfo = "Aptos Passport KYC";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		F2CEA9F72E27849000952BBE /* Aptos Passport KYC.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Aptos Passport KYC.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		F2CEAA042E27849100952BBE /* Aptos Passport KYCTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Aptos Passport KYCTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		F2CEAA0E2E27849100952BBE /* Aptos Passport KYCUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Aptos Passport KYCUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		F2CEA9F92E27849000952BBE /* Aptos Passport KYC */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Aptos Passport KYC";
+			sourceTree = "<group>";
+		};
+		F2CEAA072E27849100952BBE /* Aptos Passport KYCTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Aptos Passport KYCTests";
+			sourceTree = "<group>";
+		};
+		F2CEAA112E27849100952BBE /* Aptos Passport KYCUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Aptos Passport KYCUITests";
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		F2CEA9F42E27849000952BBE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F2CEAA012E27849100952BBE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F2CEAA0B2E27849100952BBE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		F2CEA9EE2E27849000952BBE = {
+			isa = PBXGroup;
+			children = (
+				F2CEA9F92E27849000952BBE /* Aptos Passport KYC */,
+				F2CEAA072E27849100952BBE /* Aptos Passport KYCTests */,
+				F2CEAA112E27849100952BBE /* Aptos Passport KYCUITests */,
+				F2CEA9F82E27849000952BBE /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		F2CEA9F82E27849000952BBE /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				F2CEA9F72E27849000952BBE /* Aptos Passport KYC.app */,
+				F2CEAA042E27849100952BBE /* Aptos Passport KYCTests.xctest */,
+				F2CEAA0E2E27849100952BBE /* Aptos Passport KYCUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		F2CEA9F62E27849000952BBE /* Aptos Passport KYC */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F2CEAA182E27849100952BBE /* Build configuration list for PBXNativeTarget "Aptos Passport KYC" */;
+			buildPhases = (
+				F2CEA9F32E27849000952BBE /* Sources */,
+				F2CEA9F42E27849000952BBE /* Frameworks */,
+				F2CEA9F52E27849000952BBE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				F2CEA9F92E27849000952BBE /* Aptos Passport KYC */,
+			);
+			name = "Aptos Passport KYC";
+			packageProductDependencies = (
+			);
+			productName = "Aptos Passport KYC";
+			productReference = F2CEA9F72E27849000952BBE /* Aptos Passport KYC.app */;
+			productType = "com.apple.product-type.application";
+		};
+		F2CEAA032E27849100952BBE /* Aptos Passport KYCTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F2CEAA1B2E27849100952BBE /* Build configuration list for PBXNativeTarget "Aptos Passport KYCTests" */;
+			buildPhases = (
+				F2CEAA002E27849100952BBE /* Sources */,
+				F2CEAA012E27849100952BBE /* Frameworks */,
+				F2CEAA022E27849100952BBE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F2CEAA062E27849100952BBE /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				F2CEAA072E27849100952BBE /* Aptos Passport KYCTests */,
+			);
+			name = "Aptos Passport KYCTests";
+			packageProductDependencies = (
+			);
+			productName = "Aptos Passport KYCTests";
+			productReference = F2CEAA042E27849100952BBE /* Aptos Passport KYCTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		F2CEAA0D2E27849100952BBE /* Aptos Passport KYCUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F2CEAA1E2E27849100952BBE /* Build configuration list for PBXNativeTarget "Aptos Passport KYCUITests" */;
+			buildPhases = (
+				F2CEAA0A2E27849100952BBE /* Sources */,
+				F2CEAA0B2E27849100952BBE /* Frameworks */,
+				F2CEAA0C2E27849100952BBE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F2CEAA102E27849100952BBE /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				F2CEAA112E27849100952BBE /* Aptos Passport KYCUITests */,
+			);
+			name = "Aptos Passport KYCUITests";
+			packageProductDependencies = (
+			);
+			productName = "Aptos Passport KYCUITests";
+			productReference = F2CEAA0E2E27849100952BBE /* Aptos Passport KYCUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		F2CEA9EF2E27849000952BBE /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1640;
+				LastUpgradeCheck = 1640;
+				TargetAttributes = {
+					F2CEA9F62E27849000952BBE = {
+						CreatedOnToolsVersion = 16.4;
+					};
+					F2CEAA032E27849100952BBE = {
+						CreatedOnToolsVersion = 16.4;
+						TestTargetID = F2CEA9F62E27849000952BBE;
+					};
+					F2CEAA0D2E27849100952BBE = {
+						CreatedOnToolsVersion = 16.4;
+						TestTargetID = F2CEA9F62E27849000952BBE;
+					};
+				};
+			};
+			buildConfigurationList = F2CEA9F22E27849000952BBE /* Build configuration list for PBXProject "Aptos Passport KYC" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = F2CEA9EE2E27849000952BBE;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = F2CEA9F82E27849000952BBE /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				F2CEA9F62E27849000952BBE /* Aptos Passport KYC */,
+				F2CEAA032E27849100952BBE /* Aptos Passport KYCTests */,
+				F2CEAA0D2E27849100952BBE /* Aptos Passport KYCUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		F2CEA9F52E27849000952BBE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F2CEAA022E27849100952BBE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F2CEAA0C2E27849100952BBE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		F2CEA9F32E27849000952BBE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F2CEAA002E27849100952BBE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F2CEAA0A2E27849100952BBE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		F2CEAA062E27849100952BBE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F2CEA9F62E27849000952BBE /* Aptos Passport KYC */;
+			targetProxy = F2CEAA052E27849100952BBE /* PBXContainerItemProxy */;
+		};
+		F2CEAA102E27849100952BBE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F2CEA9F62E27849000952BBE /* Aptos Passport KYC */;
+			targetProxy = F2CEAA0F2E27849100952BBE /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		F2CEAA162E27849100952BBE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = UD3269PSCB;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		F2CEAA172E27849100952BBE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = UD3269PSCB;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		F2CEAA192E27849100952BBE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = UD3269PSCB;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "test.Aptos-Passport-KYC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		F2CEAA1A2E27849100952BBE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = UD3269PSCB;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "test.Aptos-Passport-KYC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		F2CEAA1C2E27849100952BBE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = UD3269PSCB;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "test.Aptos-Passport-KYCTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Aptos Passport KYC.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Aptos Passport KYC";
+			};
+			name = Debug;
+		};
+		F2CEAA1D2E27849100952BBE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = UD3269PSCB;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "test.Aptos-Passport-KYCTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Aptos Passport KYC.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Aptos Passport KYC";
+			};
+			name = Release;
+		};
+		F2CEAA1F2E27849100952BBE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = UD3269PSCB;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "test.Aptos-Passport-KYCUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "Aptos Passport KYC";
+			};
+			name = Debug;
+		};
+		F2CEAA202E27849100952BBE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = UD3269PSCB;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "test.Aptos-Passport-KYCUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "Aptos Passport KYC";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		F2CEA9F22E27849000952BBE /* Build configuration list for PBXProject "Aptos Passport KYC" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F2CEAA162E27849100952BBE /* Debug */,
+				F2CEAA172E27849100952BBE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F2CEAA182E27849100952BBE /* Build configuration list for PBXNativeTarget "Aptos Passport KYC" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F2CEAA192E27849100952BBE /* Debug */,
+				F2CEAA1A2E27849100952BBE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F2CEAA1B2E27849100952BBE /* Build configuration list for PBXNativeTarget "Aptos Passport KYCTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F2CEAA1C2E27849100952BBE /* Debug */,
+				F2CEAA1D2E27849100952BBE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F2CEAA1E2E27849100952BBE /* Build configuration list for PBXNativeTarget "Aptos Passport KYCUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F2CEAA1F2E27849100952BBE /* Debug */,
+				F2CEAA202E27849100952BBE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = F2CEA9EF2E27849000952BBE /* Project object */;
+}
