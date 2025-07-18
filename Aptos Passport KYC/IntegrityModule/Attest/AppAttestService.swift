@@ -1,0 +1,211 @@
+//
+//  AppAttestService.swift
+//  Aptos Passport KYC
+//
+//  Created by Harold on 2025/7/18.
+//
+
+import Foundation
+import DeviceCheck
+import Combine
+import CryptoKit
+
+@MainActor
+class AppAttestService: ObservableObject {
+    static let shared = AppAttestService()
+    
+    @Published var isLoading: Bool = false
+    @Published var errorMessage: String?
+    @Published var lastKeyId: String?
+    @Published var lastAttestation: Data?
+    
+    private init() {}
+    
+    // MARK: - Public Methods
+    
+    func checkAppAttestSupport() -> Bool {
+        let isSupported = DCAppAttestService.shared.isSupported
+        print("📱 Device App Attest Support: \(isSupported)")
+        
+        #if targetEnvironment(simulator)
+        print("⚠️  Running on iOS Simulator - App Attest may not work properly")
+        #endif
+        
+        return isSupported
+    }
+    
+    func performAttestation() async throws -> (keyId: String, attestation: Data) {
+        guard checkAppAttestSupport() else {
+            throw IntegrityError.appAttestNotSupported
+        }
+        
+        isLoading = true
+        errorMessage = nil
+        
+        do {
+            print("🔄 ========== App Attest 流程开始 ==========")
+            print("📋 第一阶段：设备注册（App Attest）")
+            
+            // Step 1: Generate key pair (密钥对生成)
+            print("📝 步骤1: 生成设备密钥对...")
+            let keyId = try await DCAppAttestService.shared.generateKey()
+            print("✅ 密钥对生成成功!")
+            print("🔑 Key ID: \(keyId)")
+            print("🔐 私钥安全存储在设备安全区域 (Secure Enclave)")
+            print("🔓 公钥将包含在证书中发送给服务器")
+            
+            // Step 2: 模拟服务器挑战数据 (在实际应用中由服务器生成)
+            print("\n📥 步骤2: 接收服务器挑战数据...")
+            print("⚠️  POC模式: 使用硬编码挑战数据")
+            print("💡 实际应用中: 客户端从服务器获取随机挑战数据")
+            let serverChallenge = "aptos-passport-kyc-demo-challenge".data(using: .utf8)!
+            print("🌐 服务器挑战数据: \(String(data: serverChallenge, encoding: .utf8) ?? "N/A")")
+            print("📦 挑战数据 (Base64): \(serverChallenge.base64EncodedString())")
+            
+            // Step 3: 对挑战数据进行哈希处理
+            print("\n🔒 步骤3: 处理挑战数据...")
+            let clientDataHash = SHA256.hash(data: serverChallenge)
+            let clientDataHashData = Data(clientDataHash)
+            print("� SHA256哈希: \(clientDataHashData.base64EncodedString())")
+            print("💡 Apple要求对挑战数据进行SHA256哈希")
+            
+            // Step 4: 创建证书
+            print("\n📜 步骤4: 创建App Attest证书...")
+            print("� 调用Apple的attestKey API...")
+            let attestation = try await DCAppAttestService.shared.attestKey(keyId, clientDataHash: clientDataHashData)
+            
+            // Store for user access
+            lastKeyId = keyId
+            lastAttestation = attestation
+            
+            print("✅ 证书创建成功!")
+            print("📋 证书信息:")
+            print("   - Key ID: \(keyId)")
+            print("   - 证书大小: \(attestation.count) bytes")
+            print("   - 格式: CBOR (Concise Binary Object Representation)")
+            print("   - 包含内容: 设备证书链 + 应用ID + 公钥 + 挑战哈希")
+            
+            print("\n🚀 步骤5: 准备发送给服务器...")
+            print("📤 接下来应该将此证书发送给服务器进行验证")
+            print("🔍 服务器验证流程:")
+            print("   1. 验证证书签名 (由Apple签名)")
+            print("   2. 检查应用Bundle ID")
+            print("   3. 验证挑战数据")
+            print("   4. 提取并保存公钥")
+            print("   5. 完成设备注册")
+            
+            print("🎯 ========== App Attest 流程完成 ==========\n")
+            
+            isLoading = false
+            return (keyId: keyId, attestation: attestation)
+            
+        } catch {
+            isLoading = false
+            let detailedError = "App Attest failed: \(error.localizedDescription)"
+            print("❌ App Attest 失败: \(detailedError)")
+            
+            // Check for common errors
+            if let dcError = error as? DCError {
+                switch dcError.code {
+                case .featureUnsupported:
+                    errorMessage = "设备不支持 App Attest"
+                    print("❌ 错误原因: 设备不支持App Attest功能")
+                case .invalidInput:
+                    errorMessage = "无效的挑战数据格式"
+                    print("❌ 错误原因: 挑战数据格式无效")
+                case .invalidKey:
+                    errorMessage = "密钥生成失败"
+                    print("❌ 错误原因: 设备密钥生成失败")
+                case .serverUnavailable:
+                    errorMessage = "Apple服务不可用"
+                    print("❌ 错误原因: Apple的App Attest服务暂时不可用")
+                default:
+                    errorMessage = "App Attest 错误: \(dcError.localizedDescription)"
+                    print("❌ 错误原因: \(dcError.localizedDescription)")
+                }
+            } else {
+                errorMessage = detailedError
+            }
+            
+            throw IntegrityError.attestationFailed
+        }
+    }
+    
+    func saveCertificateToFile(attestation: Data, keyId: String) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        let dateString = formatter.string(from: Date())
+        
+        let certificateContent = """
+        {
+            "app_attest_certificate": {
+                "generated_at": "\(dateString)",
+                "key_id": "\(keyId)",
+                "bundle_id": "\(Bundle.main.bundleIdentifier ?? "unknown")",
+                "attestation_base64": "\(attestation.base64EncodedString())",
+                "attestation_size": \(attestation.count),
+                "format": "CBOR",
+                "description": "Apple App Attest Certificate for Aptos Passport KYC POC",
+                "flow_info": {
+                    "stage": "第一阶段：设备注册（App Attest）",
+                    "purpose": "向服务器证明设备和应用的完整性",
+                    "contains": [
+                        "设备证书链（由Apple签名）",
+                        "应用Bundle ID",
+                        "设备生成的公钥",
+                        "挑战数据的哈希值"
+                    ]
+                },
+                "server_verification_steps": [
+                    "1. 验证证书是否由Apple签名",
+                    "2. 检查Bundle ID是否匹配",
+                    "3. 验证挑战数据哈希",
+                    "4. 提取公钥并保存",
+                    "5. 标记设备为已认证"
+                ],
+                "next_phase": {
+                    "name": "第二阶段：后续通信（App Assert）",
+                    "description": "使用此密钥对后续敏感数据进行签名验证"
+                },
+                "poc_note": "此为POC演示，实际应用中挑战数据应由服务器生成"
+            }
+        }
+        """
+        
+        return certificateContent
+    }
+    
+    // MARK: - Attestation Verification (for future use)
+    
+    func generateAssertion(keyId: String, clientDataHash: Data) async throws -> Data {
+        print("🔄 ========== App Assert 流程开始 ==========")
+        print("📋 第二阶段：后续通信（App Assert）")
+        print("🔑 使用已认证的Key ID: \(keyId)")
+        print("📦 消息数据哈希: \(clientDataHash.base64EncodedString())")
+        
+        // This method generates an assertion using an existing attested key
+        // Useful for ongoing verification after initial attestation
+        do {
+            print("🔐 使用设备私钥对消息进行签名...")
+            let assertion = try await DCAppAttestService.shared.generateAssertion(keyId, clientDataHash: clientDataHash)
+            print("✅ 签名生成成功!")
+            print("📋 签名信息:")
+            print("   - 签名大小: \(assertion.count) bytes")
+            print("   - 签名算法: 使用设备私钥（ECDSA）")
+            print("   - 包含内容: 消息签名 + 计数器 + 时间戳")
+            
+            print("🚀 准备发送给服务器...")
+            print("📤 服务器验证流程:")
+            print("   1. 使用保存的公钥验证签名")
+            print("   2. 检查计数器递增（防重放攻击）")
+            print("   3. 验证时间戳有效性")
+            print("   4. 确认消息完整性")
+            print("🎯 ========== App Assert 流程完成 ==========\n")
+            
+            return assertion
+        } catch {
+            print("❌ App Assert 失败: \(error.localizedDescription)")
+            throw error
+        }
+    }
+}

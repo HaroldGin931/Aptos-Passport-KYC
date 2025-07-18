@@ -8,25 +8,20 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var isAttesting = false
-    @State private var attestationMessage: String?
-    @State private var showCompareSheet = false        // 控制 CompareWithCamView 弹窗
-    @State private var selectedReferenceImage = "myface"  // 可选择的参考图片
+    @StateObject private var attestService = AppAttestService.shared
+    @State private var showCompareSheet = false
+    @State private var selectedReferenceImage = "myface"
+    @State private var showIntegrityView = false
 
-    /// 点击按钮后触发 App Attest，结果写进 `attestationMessage`
-    private func checkMyDevice() {
-        isAttesting = true
-        Task {
-            do {
-                // 调用你在其他文件里实现的 App Attest 入口
-                // 下面示例假设函数为 `AttestationManager.shared.prepare() -> String`
-                let keyID = try await AttestationManager.shared.prepare()
-                attestationMessage = "✅ Verified. keyID: \(keyID.prefix(8))…"
-            } catch {
-                attestationMessage = "❌ \(error.localizedDescription)"
-            }
-            isAttesting = false
-        }
+    /// 点击按钮后打开完整性验证界面
+    private func openIntegrityView() {
+        showIntegrityView = true
+    }
+
+    /// 扫描护照功能 (预留)
+    private func scanPassport() {
+        // 预留给护照扫描功能
+        print("护照扫描功能待实现")
     }
 
     /// 点击按钮后弹出摄像头界面并实时对比人脸
@@ -42,37 +37,14 @@ struct ContentView: View {
                 .fontWeight(.bold)
                 .padding(.top)
             
+            // App Attest Status
+            attestStatusSection
+            
             // Reference Image Selection
             referenceImageSection
             
-            Button(action: checkMyDevice) {
-                HStack {
-                    Image(systemName: isAttesting ? "checkmark.circle" : "shield.checkered")
-                    Text(isAttesting ? "Checking Device..." : "Check My Device")
-                }
-                .frame(maxWidth: .infinity)
-                .padding()
-            }
-            .buttonStyle(.borderedProminent)
-            .disabled(isAttesting)
-
-            Button(action: compareFace) {
-                HStack {
-                    Image(systemName: "person.crop.circle.badge.checkmark")
-                    Text("Compare Face")
-                }
-                .frame(maxWidth: .infinity)
-                .padding()
-            }
-            .buttonStyle(.borderedProminent)
-
-            if let msg = attestationMessage {
-                Text(msg)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal)
-            }
+            // Main Action Buttons
+            actionButtonsSection
             
             Spacer()
         }
@@ -80,9 +52,67 @@ struct ContentView: View {
         .sheet(isPresented: $showCompareSheet) {
             CompareWithCamView(referenceImageName: selectedReferenceImage)
         }
+        .sheet(isPresented: $showIntegrityView) {
+            IntegrityView()
+        }
     }
     
     // MARK: - UI Components
+    
+    @ViewBuilder
+    private var attestStatusSection: some View {
+        HStack {
+            Image(systemName: attestService.lastAttestation != nil ? "checkmark.shield.fill" : "xmark.shield.fill")
+                .foregroundColor(attestService.lastAttestation != nil ? .green : .red)
+                .font(.title2)
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text("设备状态")
+                    .font(.headline)
+                
+                Text(attestService.lastAttestation != nil ? "已认证" : "未认证")
+                    .font(.caption)
+                    .foregroundColor(attestService.lastAttestation != nil ? .green : .red)
+            }
+            
+            Spacer()
+            
+            Button("管理认证") {
+                showIntegrityView = true
+            }
+            .font(.caption)
+            .foregroundColor(.blue)
+        }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
+    }
+    
+    @ViewBuilder
+    private var actionButtonsSection: some View {
+        VStack(spacing: 12) {
+            Button(action: scanPassport) {
+                HStack {
+                    Image(systemName: "doc.text.viewfinder")
+                    Text("扫描护照")
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+            }
+            .buttonStyle(.borderedProminent)
+
+            Button(action: compareFace) {
+                HStack {
+                    Image(systemName: "person.crop.circle.badge.checkmark")
+                    Text("人脸对比")
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(attestService.lastAttestation == nil) // 需要先认证设备
+        }
+    }
     
     @ViewBuilder
     private var referenceImageSection: some View {

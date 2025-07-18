@@ -79,7 +79,7 @@ final class FaceComparisonViewModel: ObservableObject {
     // 常量
     private let maxDetections = 100
     private let successThreshold = 20
-    private let similarityThreshold: Float = 0.64
+    private let similarityThreshold: Float = 0.69
     
     init(referenceImage: UIImage, algorithmName: String? = nil) {
         self._referenceImage = referenceImage

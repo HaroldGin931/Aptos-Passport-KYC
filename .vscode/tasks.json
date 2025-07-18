@@ -1,0 +1,23 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Build iOS App",
+			"type": "shell",
+			"command": "xcodebuild",
+			"args": [
+				"-project",
+				"Aptos Passport KYC.xcodeproj",
+				"-scheme",
+				"Aptos Passport KYC",
+				"-destination",
+				"platform=iOS Simulator,name=iPhone 16",
+				"build"
+			],
+			"group": "build",
+			"problemMatcher": [
+				"$gcc"
+			]
+		}
+	]
+}
