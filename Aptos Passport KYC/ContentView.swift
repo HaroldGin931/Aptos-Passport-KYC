@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var attestService = AppAttestService.shared
+    @StateObject private var authStateManager = AuthenticationStateManager.shared
     @State private var showCompareSheet = false
     @State private var selectedReferenceImage = "myface"
     @State private var showIntegrityView = false
@@ -20,8 +21,16 @@ struct ContentView: View {
 
     /// 扫描护照功能 (预留)
     private func scanPassport() {
+        // 检查设备认证状态
+        guard authStateManager.isAuthenticated else {
+            print("❌ 扫描护照失败: 设备未认证")
+            return
+        }
+        
         // 预留给护照扫描功能
-        print("护照扫描功能待实现")
+        print("📱 开始扫描护照...")
+        print("✅ 设备已认证，允许扫描护照")
+        print("🔧 护照扫描功能待实现")
     }
 
     /// 点击按钮后弹出摄像头界面并实时对比人脸
@@ -62,17 +71,29 @@ struct ContentView: View {
     @ViewBuilder
     private var attestStatusSection: some View {
         HStack {
-            Image(systemName: attestService.lastAttestation != nil ? "checkmark.shield.fill" : "xmark.shield.fill")
-                .foregroundColor(attestService.lastAttestation != nil ? .green : .red)
+            Image(systemName: authStateManager.isAuthenticated ? "checkmark.shield.fill" : "xmark.shield.fill")
+                .foregroundColor(authStateManager.isAuthenticated ? .green : .red)
                 .font(.title2)
             
             VStack(alignment: .leading, spacing: 4) {
                 Text("设备状态")
                     .font(.headline)
                 
-                Text(attestService.lastAttestation != nil ? "已认证" : "未认证")
-                    .font(.caption)
-                    .foregroundColor(attestService.lastAttestation != nil ? .green : .red)
+                if authStateManager.isAuthenticated {
+                    Text("已认证")
+                        .font(.caption)
+                        .foregroundColor(.green)
+                    
+                    if let keyCheckDate = authStateManager.keyCheckDate {
+                        Text("检查时间: \(formatDate(keyCheckDate))")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+                } else {
+                    Text("未认证")
+                        .font(.caption)
+                        .foregroundColor(.red)
+                }
             }
             
             Spacer()
@@ -100,6 +121,7 @@ struct ContentView: View {
                 .padding()
             }
             .buttonStyle(.borderedProminent)
+            .disabled(!authStateManager.isAuthenticated) // 需要先认证设备
 
             Button(action: compareFace) {
                 HStack {
@@ -110,7 +132,7 @@ struct ContentView: View {
                 .padding()
             }
             .buttonStyle(.borderedProminent)
-            .disabled(attestService.lastAttestation == nil) // 需要先认证设备
+            .disabled(!authStateManager.isAuthenticated) // 需要先认证设备
         }
     }
     
@@ -161,6 +183,15 @@ struct ContentView: View {
             }
         }
         .buttonStyle(.plain)
+    }
+    
+    // MARK: - Helper Methods
+    
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .short
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
     }
 }
 

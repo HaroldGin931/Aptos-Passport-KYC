@@ -19,7 +19,9 @@ class AppAttestService: ObservableObject {
     @Published var lastKeyId: String?
     @Published var lastAttestation: Data?
     
-    private init() {}
+    private init() {
+        // 移除初始化时的状态恢复，避免循环依赖
+    }
     
     // MARK: - Public Methods
     
@@ -77,6 +79,9 @@ class AppAttestService: ObservableObject {
             // Store for user access
             lastKeyId = keyId
             lastAttestation = attestation
+            
+            // 记录认证状态到AuthenticationStateManager
+            AuthenticationStateManager.shared.recordAuthentication(keyId: keyId)
             
             print("✅ 证书创建成功!")
             print("📋 证书信息:")

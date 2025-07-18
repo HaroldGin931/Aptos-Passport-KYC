@@ -35,6 +35,7 @@ class ParserDataManager: ObservableObject {
 struct IntegrityView: View {
     @StateObject private var attestService = AppAttestService.shared
     @StateObject private var assertService = AppAssertService.shared
+    @StateObject private var authStateManager = AuthenticationStateManager.shared
     @StateObject private var parserManager = ParserDataManager()
     @Environment(\.dismiss) private var dismiss
     
@@ -78,6 +79,11 @@ struct IntegrityView: View {
                     }
                 }
             }
+        }
+        .onAppear {
+            // 每次打开IntegrityView时刷新认证状态
+            print("🔄 IntegrityView onAppear: 刷新认证状态")
+            authStateManager.refreshAuthenticationState()
         }
         .alert("消息", isPresented: $showAlert) {
             Button("确定") { }
@@ -164,7 +170,8 @@ struct IntegrityView: View {
                 Text("设备认证")
                     .font(.headline)
                 Spacer()
-                statusIndicator(isActive: attestService.lastAttestation != nil)
+                // 优先检查authStateManager的状态，然后检查attestService
+                statusIndicator(isActive: authStateManager.isAuthenticated || attestService.lastAttestation != nil)
             }
             
             Text("生成设备密钥并获取 Apple 认证证书")
@@ -174,8 +181,8 @@ struct IntegrityView: View {
             if attestService.isLoading {
                 ProgressView("正在验证...")
                     .frame(maxWidth: .infinity)
-            } else if isAttestationCompleted {
-                // 认证完成后显示证书信息和解析按钮
+            } else if authStateManager.isAuthenticated || isAttestationCompleted {
+                // 已认证状态：要么从保存状态恢复，要么刚完成认证
                 VStack(spacing: 12) {
                     HStack {
                         Image(systemName: "checkmark.circle.fill")
@@ -186,8 +193,7 @@ struct IntegrityView: View {
                         Spacer()
                     }
                     
-                    if let attestation = attestService.lastAttestation,
-                       let keyId = attestService.lastKeyId {
+                    if let keyId = attestService.lastKeyId {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("认证信息:")
                                 .font(.subheadline)
@@ -201,25 +207,48 @@ struct IntegrityView: View {
                                     .font(.system(.caption, design: .monospaced))
                             }
                             
-                            HStack {
-                                Text("证书大小:")
-                                    .font(.caption)
+                            if let attestation = attestService.lastAttestation {
+                                HStack {
+                                    Text("证书大小:")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    Text("\(attestation.count) bytes")
+                                        .font(.caption)
+                                }
+                                
+                                Button("查看证书详情") {
+                                    parseCertificate(attestation: attestation)
+                                }
+                                .buttonStyle(.bordered)
+                                .frame(maxWidth: .infinity)
+                            } else {
+                                HStack {
+                                    Text("状态:")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    Text("从已保存状态恢复")
+                                        .font(.caption)
+                                        .foregroundColor(.blue)
+                                }
+                                
+                                Text("💡 证书详情需要重新生成后查看")
+                                    .font(.caption2)
                                     .foregroundColor(.secondary)
-                                Text("\(attestation.count) bytes")
-                                    .font(.caption)
+                                    .multilineTextAlignment(.center)
                             }
-                            
-                            Button("查看证书详情") {
-                                parseCertificate(attestation: attestation)
-                            }
-                            .buttonStyle(.bordered)
-                            .frame(maxWidth: .infinity)
                             
                             Button("重新认证") {
                                 resetAttestation()
                             }
                             .buttonStyle(.bordered)
                             .foregroundColor(.orange)
+                            .frame(maxWidth: .infinity)
+                            
+                            Button("清除认证状态") {
+                                clearAuthenticationState()
+                            }
+                            .buttonStyle(.bordered)
+                            .foregroundColor(.red)
                             .frame(maxWidth: .infinity)
                         }
                         .padding()
@@ -228,6 +257,7 @@ struct IntegrityView: View {
                     }
                 }
             } else {
+                // 只有在真正未认证时才显示"开始设备认证"按钮
                 Button("开始设备认证") {
                     Task {
                         await performAttestation()
@@ -450,6 +480,22 @@ struct IntegrityView: View {
         assertService.lastAssertion = nil
         
         print("✅ IntegrityView: 认证状态已重置")
+    }
+    
+    private func clearAuthenticationState() {
+        print("🔄 IntegrityView: 清除认证状态...")
+        
+        // 清除认证状态管理器的状态
+        authStateManager.clearAuthenticationState()
+        
+        // 同时重置当前会话的认证状态
+        resetAttestation()
+        
+        // 显示确认消息
+        alertMessage = "认证状态已清除，需要重新进行设备认证。"
+        showAlert = true
+        
+        print("✅ IntegrityView: 认证状态已清除")
     }
     
     private func parseCertificate(attestation: Data) {
