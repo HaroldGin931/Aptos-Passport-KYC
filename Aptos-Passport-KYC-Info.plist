@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-<dict/>
+<dict>
+	<key>NSCameraUsageDescription</key>
+	<string>此应用需要访问相机进行人脸识别和护照扫描</string>
+	<key>NFCReaderUsageDescription</key>
+	<string>用于验证护照真伪</string>
+	<key>com.apple.developer.nfc.readersession.iso7816.select-identifiers</key>
+	<array>
+		<string>A0000002471001</string>
+		<string>00000000000000</string>
+	</array>
+</dict>
 </plist>

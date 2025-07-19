@@ -195,6 +195,9 @@
 			);
 			mainGroup = F2CEA9EE2E27849000952BBE;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				F25167082E2A93F100685D28 /* XCRemoteSwiftPackageReference "NFCPassportReader" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = F2CEA9F82E27849000952BBE /* Products */;
 			projectDirPath = "";
@@ -570,6 +573,17 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		F25167082E2A93F100685D28 /* XCRemoteSwiftPackageReference "NFCPassportReader" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/AndyQ/NFCPassportReader";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.1.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
 	};
 	rootObject = F2CEA9EF2E27849000952BBE /* Project object */;
 }

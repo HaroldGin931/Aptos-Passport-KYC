@@ -10,16 +10,18 @@ import SwiftUI
 struct ContentView: View {
     @StateObject private var attestService = AppAttestService.shared
     @StateObject private var authStateManager = AuthenticationStateManager.shared
+    @StateObject private var passportManager = PassportReaderManager.shared
     @State private var showCompareSheet = false
     @State private var selectedReferenceImage = "myface"
     @State private var showIntegrityView = false
+    @State private var showPassportScanner = false
 
     /// 点击按钮后打开完整性验证界面
     private func openIntegrityView() {
         showIntegrityView = true
     }
 
-    /// 扫描护照功能 (预留)
+    /// 扫描护照功能
     private func scanPassport() {
         // 检查设备认证状态
         guard authStateManager.isAuthenticated else {
@@ -27,10 +29,15 @@ struct ContentView: View {
             return
         }
         
-        // 预留给护照扫描功能
+        // 检查NFC可用性
+        guard passportManager.isNFCAvailable() else {
+            print("❌ 此设备不支持NFC功能")
+            return
+        }
+        
         print("📱 开始扫描护照...")
         print("✅ 设备已认证，允许扫描护照")
-        print("🔧 护照扫描功能待实现")
+        showPassportScanner = true
     }
 
     /// 点击按钮后弹出摄像头界面并实时对比人脸
@@ -63,6 +70,9 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showIntegrityView) {
             IntegrityView()
+        }
+        .sheet(isPresented: $showPassportScanner) {
+            ChinesePassportScannerView()
         }
     }
     
