@@ -4,3 +4,6 @@ Aptos Passport KYC/Assets.xcassets/myface.imageset/myface.jpg
 Aptos Passport KYC.xcodeproj/*
 .summary/*
 .vscode/settings.json
+./TruePassContract/aptos/
+TruePassContract/move/build/
+TruePassContract/.env
