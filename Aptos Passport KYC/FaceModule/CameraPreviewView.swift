@@ -8,7 +8,7 @@
 import SwiftUI
 import AVFoundation
 
-// MARK: - CameraPreview —— 将 AVCaptureSession 画面嵌入 SwiftUI
+// MARK: - CameraPreview —— Embed AVCaptureSession into SwiftUI
 struct CameraPreviewView: UIViewRepresentable {
     let session: AVCaptureSession
     
@@ -22,7 +22,7 @@ struct CameraPreviewView: UIViewRepresentable {
         uiView.videoPreviewLayer.session = session
     }
     
-    /// 内部 UIView 子类，自动填充 layer
+    /// Internal UIView subclass, auto-fill layer
     final class PreviewView: UIView {
         override class var layerClass: AnyClass { AVCaptureVideoPreviewLayer.self }
         var videoPreviewLayer: AVCaptureVideoPreviewLayer { layer as! AVCaptureVideoPreviewLayer }

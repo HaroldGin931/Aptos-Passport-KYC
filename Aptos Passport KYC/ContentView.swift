@@ -16,31 +16,31 @@ struct ContentView: View {
     @State private var showIntegrityView = false
     @State private var showPassportScanner = false
 
-    /// 点击按钮后打开完整性验证界面
+    /// Click button to open integrity verification interface
     private func openIntegrityView() {
         showIntegrityView = true
     }
 
-    /// 扫描护照功能
+    /// Passport scanning functionality
     private func scanPassport() {
-        // 检查设备认证状态
+        // Check device authentication status
         guard authStateManager.isAuthenticated else {
-            print("❌ 扫描护照失败: 设备未认证")
+            print("❌ Passport scan failed: Device not authenticated")
             return
         }
         
-        // 检查NFC可用性
+        // Check NFC availability
         guard passportManager.isNFCAvailable() else {
-            print("❌ 此设备不支持NFC功能")
+            print("❌ This device does not support NFC functionality")
             return
         }
         
-        print("📱 开始扫描护照...")
-        print("✅ 设备已认证，允许扫描护照")
+        print("📱 Starting passport scan...")
+        print("✅ Device authenticated, allowing passport scan")
         showPassportScanner = true
     }
 
-    /// 点击按钮后弹出摄像头界面并实时对比人脸
+    /// Click button to open camera interface and compare faces in real time
     private func compareFace() {
         showCompareSheet = true
     }
@@ -86,21 +86,21 @@ struct ContentView: View {
                 .font(.title2)
             
             VStack(alignment: .leading, spacing: 4) {
-                Text("设备状态")
+                Text("Device Status")
                     .font(.headline)
                 
                 if authStateManager.isAuthenticated {
-                    Text("已认证")
+                    Text("Authenticated")
                         .font(.caption)
                         .foregroundColor(.green)
                     
                     if let keyCheckDate = authStateManager.keyCheckDate {
-                        Text("检查时间: \(formatDate(keyCheckDate))")
+                        Text("Check time: \(formatDate(keyCheckDate))")
                             .font(.caption2)
                             .foregroundColor(.secondary)
                     }
                 } else {
-                    Text("未认证")
+                    Text("Not Authenticated")
                         .font(.caption)
                         .foregroundColor(.red)
                 }
@@ -108,7 +108,7 @@ struct ContentView: View {
             
             Spacer()
             
-            Button("管理认证") {
+            Button("Manage Auth") {
                 showIntegrityView = true
             }
             .font(.caption)
@@ -125,24 +125,24 @@ struct ContentView: View {
             Button(action: scanPassport) {
                 HStack {
                     Image(systemName: "doc.text.viewfinder")
-                    Text("扫描护照")
+                    Text("Scan Passport")
                 }
                 .frame(maxWidth: .infinity)
                 .padding()
             }
             .buttonStyle(.borderedProminent)
-            .disabled(!authStateManager.isAuthenticated) // 需要先认证设备
+            .disabled(!authStateManager.isAuthenticated) // Device authentication required first
 
             Button(action: compareFace) {
                 HStack {
                     Image(systemName: "person.crop.circle.badge.checkmark")
-                    Text("人脸对比")
+                    Text("Face Comparison")
                 }
                 .frame(maxWidth: .infinity)
                 .padding()
             }
             .buttonStyle(.borderedProminent)
-            .disabled(!authStateManager.isAuthenticated) // 需要先认证设备
+            .disabled(!authStateManager.isAuthenticated) // Device authentication required first
         }
     }
     

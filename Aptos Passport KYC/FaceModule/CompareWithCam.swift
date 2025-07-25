@@ -11,7 +11,9 @@ import SwiftUI
 struct CompareWithCamView: View {
     
     // Dependencies
-    @StateObject private var cameraManager = CameraManager()
+    @Sta            return "Face verification passed!"
+        case .failed:
+            return "Face verification failed, please try again."bject private var cameraManager = CameraManager()
     @StateObject private var viewModel: FaceComparisonViewModel
     
     // UI State
@@ -56,25 +58,25 @@ struct CompareWithCamView: View {
         }
         .onAppear {
             #if DEBUG
-            print("🖼️ [CompareWithCam] 视图出现，开始设置摄像头")
+            print("🖼️ [CompareWithCam] View appeared, starting camera setup")
             #endif
             setupCamera()
         }
         .onDisappear {
             #if DEBUG
-            print("🖼️ [CompareWithCam] 视图消失，停止摄像头")
+            print("🖼️ [CompareWithCam] View disappeared, stopping camera")
             #endif
             cameraManager.stop()
         }
         .onReceive(cameraManager.$latestPixelBuffer.compactMap { $0 }) { pixelBuffer in
             #if DEBUG
-            print("🖼️ [CompareWithCam] 接收到新的像素缓冲区，开始处理帧")
+            print("🖼️ [CompareWithCam] Received new pixel buffer, starting frame processing")
             #endif
             processFrame(pixelBuffer)
         }
         .onChange(of: viewModel.shouldDismiss) { shouldDismiss in
             #if DEBUG
-            print("🖼️ [CompareWithCam] shouldDismiss状态改变: \(shouldDismiss)")
+            print("🖼️ [CompareWithCam] shouldDismiss status changed: \(shouldDismiss)")
             #endif
             if shouldDismiss {
                 showFinalResult()
@@ -141,7 +143,7 @@ struct CompareWithCamView: View {
     private var statusSection: some View {
         VStack(spacing: 8) {
             if viewModel.comparisonResult == .waiting {
-                Text("未检测到人脸")
+                Text("No face detected")
                     .font(.title3)
                     .fontWeight(.medium)
                     .foregroundColor(.red)
@@ -158,7 +160,7 @@ struct CompareWithCamView: View {
     @ViewBuilder
     private var controlsSection: some View {
         VStack(spacing: 12) {
-            // 控制按钮
+            // Control buttons
             HStack(spacing: 16) {
                 Button(action: resetComparison) {
                     Label("Reset", systemImage: "arrow.clockwise")
@@ -207,9 +209,9 @@ struct CompareWithCamView: View {
     private var finalResultMessage: String {
         switch viewModel.finalResult {
         case .success:
-            return "人脸验证通过！"
+            return "Face verification passed!"
         case .failure:
-            return "人脸验证失败，请重试。"
+            return "Face verification failed, please try again."
         case .none:
             return ""
         }
@@ -217,56 +219,56 @@ struct CompareWithCamView: View {
     
     private func setupCamera() {
         #if DEBUG
-        print("🖼️ [CompareWithCam] 开始设置摄像头")
+        print("🖼️ [CompareWithCam] Starting camera setup")
         #endif
         cameraManager.start()
     }
     
     private func processFrame(_ pixelBuffer: CVPixelBuffer) {
         #if DEBUG
-        print("🖼️ [CompareWithCam] 开始处理帧，当前isComparing: \(viewModel.isComparing)")
+        print("🖼️ [CompareWithCam] Starting frame processing, current isComparing: \(viewModel.isComparing)")
         #endif
         
-        // 避免在比较过程中处理新帧
+        // Avoid processing new frames during comparison
         guard !viewModel.isComparing else { 
             #if DEBUG
-            print("🖼️ [CompareWithCam] 正在比较中，跳过当前帧")
+            print("🖼️ [CompareWithCam] Currently comparing, skipping current frame")
             #endif
             return 
         }
         
-        // 从当前帧提取人脸图像
+        // Extract face image from current frame
         guard let faceImage = cameraManager.extractFaceImage(from: pixelBuffer) else {
             #if DEBUG
-            print("🖼️ [CompareWithCam] 未提取到人脸图像，调用noFaceDetected")
+            print("🖼️ [CompareWithCam] No face image extracted, calling noFaceDetected")
             #endif
             viewModel.noFaceDetected()
             return
         }
         
         #if DEBUG
-        print("🖼️ [CompareWithCam] 成功提取人脸图像，开始处理")
+        print("🖼️ [CompareWithCam] Successfully extracted face image, starting processing")
         #endif
         
-        // 处理人脸图像
+        // Process face image
         viewModel.processFaceImage(faceImage)
     }
     
     private func resetComparison() {
         #if DEBUG
-        print("🖼️ [CompareWithCam] 重置比较状态")
+        print("🖼️ [CompareWithCam] Resetting comparison status")
         #endif
         viewModel.reset()
     }
     
     private func showFinalResult() {
         #if DEBUG
-        print("🖼️ [CompareWithCam] 显示最终结果: \(viewModel.finalResult)")
+        print("🖼️ [CompareWithCam] Showing final result: \(viewModel.finalResult)")
         #endif
-        // 停止摄像头
+        // Stop camera
         cameraManager.stop()
         
-        // 显示结果后自动关闭弹窗的逻辑已经在 alert 中处理
+        // Logic for automatically closing popup after showing result is already handled in alert
     }
 }
 

@@ -10,7 +10,7 @@ import CoreNFC
 import CryptoKit
 import CommonCrypto
 
-// MARK: - 中国护照数据模型
+// MARK: - Chinese Passport Data Model
 struct ChinesePassportData {
     let documentNumber: String
     let firstName: String
@@ -25,7 +25,7 @@ struct ChinesePassportData {
     let faceImage: Data?
 }
 
-// MARK: - MRZ信息结构
+// MARK: - MRZ Information Structure
 struct MRZInfo {
     let documentNumber: String
     let dateOfBirth: String
@@ -33,29 +33,30 @@ struct MRZInfo {
     let checkDigits: String
 }
 
-// MARK: - 中国护照读取器
+// MARK: - Chinese Passport Reader
 class ChinesePassportReader: NSObject, ObservableObject {
     @Published var isReading = false
-    @Published var statusMessage = "准备读取"
+    @Published var statusMessage = "Ready to read"
     @Published var errorMessage: String?
     @Published var passportData: ChinesePassportData?
+    @Published var bacAuthenticated = false // New: BAC authentication status
     
     private var nfcSession: NFCTagReaderSession?
     private var mrzInfo: MRZInfo?
     
-    // MRZ信息用于BAC计算
+    // MRZ information for BAC calculation
     private var mrzPassportNumber: String = ""
     private var mrzDateOfBirth: String = ""
     private var mrzDateOfExpiry: String = ""
     
-    // BAC密钥存储
+    // BAC key storage
     private var bacKEnc: Data?
     private var bacKMac: Data?
     private var bacRndIFD: Data?
     private var bacRndIC: Data?
-    private var bacKIC: Data? // 保存我们生成的KIC
+    private var bacKIC: Data? // Save the KIC we generated
     
-    // 会话密钥存储
+    // Session key storage
     private var sessionKEnc: Data?
     private var sessionKMac: Data?
     private var ssc: UInt64 = 0
@@ -64,11 +65,11 @@ class ChinesePassportReader: NSObject, ObservableObject {
         super.init()
     }
     
-    // MARK: - 公共接口
+    // MARK: - Public Interface
     
-    // 使用MRZ信息开始读取护照
+    // Start reading passport using MRZ information
     func readPassport(with mrzInfo: MRZInfo) {
-        log("🚀 开始读取护照，护照号: \(mrzInfo.documentNumber)")
+        log("🚀 Starting passport reading, passport number: \(mrzInfo.documentNumber)")
         
         self.mrzInfo = mrzInfo
         self.mrzPassportNumber = mrzInfo.documentNumber
@@ -77,35 +78,35 @@ class ChinesePassportReader: NSObject, ObservableObject {
         
         DispatchQueue.main.async {
             self.isReading = true
-            self.statusMessage = "准备NFC读取"
+            self.statusMessage = "Preparing NFC reading"
             self.errorMessage = nil
             self.passportData = nil
         }
         
-        // 计算BAC密钥
+        // Calculate BAC keys
         calculateBACKeys()
         
-        // 启动NFC会话
+        // Start NFC session
         startNFCSession()
     }
     
-    // 停止读取
+    // Stop reading
     func stopReading() {
-        log("⏹️ 用户取消读取")
+        log("⏹️ User cancelled reading")
         nfcSession?.invalidate()
         
         DispatchQueue.main.async {
             self.isReading = false
-            self.statusMessage = "已取消"
+            self.statusMessage = "Cancelled"
         }
     }
     
-    // MARK: - BAC密钥计算
+    // MARK: - BAC Key Calculation
     
     private func calculateBACKeys() {
-        log("🔑 开始计算BAC密钥")
+        log("🔑 Starting BAC key calculation")
         
-        // 使用PassportBACCalculator计算BAC密钥
+        // Use PassportBACCalculator to calculate BAC keys
         let keys = PassportBACCalculator.deriveBACKeys(
             passportNumber: mrzPassportNumber,
             dateOfBirth: mrzDateOfBirth,
@@ -115,31 +116,31 @@ class ChinesePassportReader: NSObject, ObservableObject {
         self.bacKEnc = keys.encryptionKey
         self.bacKMac = keys.macKey
         
-        log("✅ BAC密钥计算成功")
+        log("✅ BAC key calculation successful")
         log("🔑 KEnc: \(keys.encryptionKey.hexString)")
         log("🔑 KMac: \(keys.macKey.hexString)")
     }
     
-    // MARK: - NFC会话管理
+    // MARK: - NFC Session Management
     
     private func startNFCSession() {
         guard NFCNDEFReaderSession.readingAvailable else {
-            log("❌ 此设备不支持NFC读取")
+            log("❌ This device does not support NFC reading")
             DispatchQueue.main.async {
-                self.errorMessage = "此设备不支持NFC读取"
+                self.errorMessage = "This device does not support NFC reading"
                 self.isReading = false
             }
             return
         }
         
         nfcSession = NFCTagReaderSession(pollingOption: .iso14443, delegate: self)
-        nfcSession?.alertMessage = "请将手机靠近护照的个人信息页"
+        nfcSession?.alertMessage = "Please hold your phone near the passport's personal information page"
         nfcSession?.begin()
         
-        log("📱 NFC会话已启动")
+        log("📱 NFC session started")
     }
     
-    // MARK: - 日志输出
+    // MARK: - Logging
     
     private func log(_ message: String) {
         print("[ChinesePassportReader] \(message)")
@@ -149,7 +150,7 @@ class ChinesePassportReader: NSObject, ObservableObject {
         }
     }
     
-    // MARK: - 3DES加密/解密工具
+    // MARK: - 3DES Encryption/Decryption Tools
     
     private func encrypt3DESECB(data: Data, key: Data) -> Data {
         return perform3DESOperation(data: data, key: key, operation: CCOperation(kCCEncrypt), mode: CCMode(kCCModeECB))
@@ -171,13 +172,13 @@ class ChinesePassportReader: NSObject, ObservableObject {
         let keyLength = key.count
         let dataLength = data.count
         
-        // 确保密钥长度正确 (24字节用于3DES)
+        // Ensure correct key length (24 bytes for 3DES)
         var keyData = key
         if keyLength == 16 {
-            // 如果是16字节密钥，扩展为24字节
+            // If 16-byte key, expand to 24 bytes
             keyData = key + key.prefix(8)
         } else if keyLength < 24 && keyLength != 16 {
-            log("❌ 3DES密钥长度错误: \(keyLength)")
+            log("❌ 3DES key length error: \(keyLength)")
             return Data()
         }
         
@@ -185,7 +186,7 @@ class ChinesePassportReader: NSObject, ObservableObject {
         var buffer = [UInt8](repeating: 0, count: bufferSize)
         var numBytesProcessed: size_t = 0
         
-        // 根据模式设置选项
+        // Set options based on mode
         var options: CCOptions = 0
         if mode == CCMode(kCCModeCBC) {
             // ICAO 9303 Part 11, 4.3.3 specifies NO PADDING for External Authenticate's EncS.
@@ -227,51 +228,51 @@ class ChinesePassportReader: NSObject, ObservableObject {
         }
         
         guard cryptStatus == kCCSuccess else {
-            log("❌ 3DES操作失败: \(cryptStatus)")
-            log("❌ 密钥长度: \(keyData.count), 数据长度: \(dataLength)")
-            log("❌ 操作: \(operation), 模式: \(mode)")
+            log("❌ 3DES operation failed: \(cryptStatus)")
+            log("❌ Key length: \(keyData.count), Data length: \(dataLength)")
+            log("❌ Operation: \(operation), Mode: \(mode)")
             return Data()
         }
         
         return Data(bytes: buffer, count: numBytesProcessed)
     }
     
-    // 计算MAC (使用3DES-CBC-MAC)
+    // Calculate MAC (using 3DES-CBC-MAC)
     private func calculateMAC(data: Data, key: Data) -> Data {
-        log("🔐 计算MAC，数据长度: \(data.count)，密钥长度: \(key.count)")
-        log("🔐 MAC输入数据: \(data.hexString)")
-        log("🔐 MAC密钥: \(key.hexString)")
+        log("🔐 Calculating MAC, data length: \(data.count), key length: \(key.count)")
+        log("🔐 MAC input data: \(data.hexString)")
+        log("🔐 MAC key: \(key.hexString)")
         
         // ISO 9797-1 MAC Algorithm 3 (3DES-CBC-MAC)
         let blockSize = 8
         var paddedData = data
         
-        // 添加ISO 9797-1 Padding Method 2
+        // Add ISO 9797-1 Padding Method 2
         paddedData.append(0x80)
         while paddedData.count % blockSize != 0 {
             paddedData.append(0x00)
         }
         
-        log("🔐 填充后数据: \(paddedData.hexString)")
+        log("🔐 Padded data: \(paddedData.hexString)")
         
-        // 确保密钥长度正确
+        // Ensure correct key length
         var macKey = key
         if key.count == 16 {
-            macKey = key + key.prefix(8) // 扩展为24字节
+            macKey = key + key.prefix(8) // Expand to 24 bytes
         } else if key.count < 16 {
-            log("❌ MAC密钥长度不足: \(key.count)")
+            log("❌ MAC key length insufficient: \(key.count)")
             return Data()
         }
         
-        // 简化的MAC计算：使用3DES-CBC加密最后一个块
+        // Simplified MAC calculation: use 3DES-CBC encryption for the last block
         var mac = Data(repeating: 0, count: blockSize)
         
-        // 逐块处理
+        // Process block by block
         for i in stride(from: 0, to: paddedData.count, by: blockSize) {
             let endIndex = min(i + blockSize, paddedData.count)
             var block = paddedData.subdata(in: i..<endIndex)
             
-            // 确保块大小为8字节
+            // Ensure block size is 8 bytes
             while block.count < blockSize {
                 block.append(0x00)
             }
@@ -283,50 +284,50 @@ class ChinesePassportReader: NSObject, ObservableObject {
                 xorBlock.append(xorByte)
             }
             
-            // 使用DES加密（使用前8字节密钥）
+            // Use DES encryption (using first 8 bytes of key)
             let desKey = Data(macKey.prefix(8))
             mac = performDESOperation(data: xorBlock, key: desKey, operation: CCOperation(kCCEncrypt))
             
             if mac.isEmpty {
-                log("❌ DES加密失败")
+                log("❌ DES encryption failed")
                 return Data()
             }
         }
         
-        // 最终3DES处理：Decrypt-Encrypt
+        // Final 3DES processing: Decrypt-Encrypt
         if macKey.count >= 24 {
-            let key2 = Data(macKey.subdata(in: 8..<16)) // 第二个8字节
-            let key1 = Data(macKey.prefix(8)) // 第一个8字节
+            let key2 = Data(macKey.subdata(in: 8..<16)) // Second 8 bytes
+            let key1 = Data(macKey.prefix(8)) // First 8 bytes
             
             // Decrypt with key2
             mac = performDESOperation(data: mac, key: key2, operation: CCOperation(kCCDecrypt))
             if mac.isEmpty {
-                log("❌ DES解密失败")
+                log("❌ DES decryption failed")
                 return Data()
             }
             
             // Encrypt with key1
             mac = performDESOperation(data: mac, key: key1, operation: CCOperation(kCCEncrypt))
             if mac.isEmpty {
-                log("❌ DES加密失败")
+                log("❌ DES encryption failed")
                 return Data()
             }
         }
         
         let finalMAC = Data(mac.prefix(8))
-        log("🔐 计算出的MAC: \(finalMAC.hexString)")
+        log("🔐 Calculated MAC: \(finalMAC.hexString)")
         return finalMAC
     }
     
-    // DES操作（用于MAC计算）
+    // DES operation (for MAC calculation)
     private func performDESOperation(data: Data, key: Data, operation: CCOperation) -> Data {
         guard key.count == 8 else {
-            log("❌ DES密钥长度错误: \(key.count)")
+            log("❌ DES key length error: \(key.count)")
             return Data()
         }
         
         guard data.count == 8 else {
-            log("❌ DES数据长度错误: \(data.count)")
+            log("❌ DES data length error: \(data.count)")
             return Data()
         }
         
@@ -374,16 +375,16 @@ class ChinesePassportReader: NSObject, ObservableObject {
         
         iso7816Tag.sendCommand(apdu: getChallengeAPDU) { [weak self] data, sw1, sw2, error in
             if let error = error {
-                self?.log("❌ 获取挑战失败: \(error)")
+                    self?.log("❌ Failed to get challenge: \(error)")
                 completion(nil)
                 return
             }
             
             if sw1 == 0x90 && sw2 == 0x00 {
-                self?.log("✅ 获取挑战成功: \(data.hexString)")
+                self?.log("✅ Challenge obtained successfully: \(data.hexString)")
                 completion(data)
             } else {
-                self?.log("❌ 获取挑战失败: SW1=\(String(format: "%02X", sw1)), SW2=\(String(format: "%02X", sw2))")
+                self?.log("❌ Failed to get challenge: SW1=\(String(format: "%02X", sw1)), SW2=\(String(format: "%02X", sw2))")
                 completion(nil)
             }
         }
@@ -394,15 +395,15 @@ class ChinesePassportReader: NSObject, ObservableObject {
         rndIC: Data,
         completion: @escaping (Data?) -> Void
     ) {
-        log("🔐 开始外部认证")
+        log("🔐 Starting external authentication")
         
         guard let bacKEnc = bacKEnc, let bacKMac = bacKMac else {
-            log("❌ BAC密钥未计算")
+            log("❌ BAC keys not calculated")
             completion(nil)
             return
         }
         
-        // 生成随机数RND.IFD
+        // Generate random number RND.IFD
         var rndIFD = Data(count: 8)
         let result = rndIFD.withUnsafeMutableBytes { bytes in
             SecRandomCopyBytes(kSecRandomDefault, 8, bytes.bindMemory(to: UInt8.self).baseAddress!)
@@ -431,25 +432,25 @@ class ChinesePassportReader: NSObject, ObservableObject {
             completion(nil)
             return
         }
-        self.bacKIC = kIC // 保存kIC以供后续使用
+        self.bacKIC = kIC // Save kIC for later use
         
-        // 构建S = RND.IFD || RND.IC || KiC (32字节)
+        // Build S = RND.IFD || RND.IC || KiC (32 bytes)
         // ICAO 9303 Part 11, 4.3.3 specifies the order RND.IFD || RND.IC
         let S = rndIFD + rndIC + kIC
         log("🔗 S (RND.IFD || RND.IC || KiC): \(S.hexString)")
         
-        // 使用KEnc加密S
+        // Encrypt S using KEnc
         let encryptedS = encrypt3DESCBC(data: S, key: bacKEnc, iv: Data(repeating: 0, count: 8))
-        log("🔐 加密的S: \(encryptedS.hexString)")
+        log("🔐 Encrypted S: \(encryptedS.hexString)")
         
-        // 计算MAC
+        // Calculate MAC
         let macInput = encryptedS
         let mac = calculateMAC(data: macInput, key: bacKMac)
-        log("🏷️ 计算的MAC: \(mac.hexString)")
+        log("🏷️ Calculated MAC: \(mac.hexString)")
         
-        // 构建外部认证命令数据: encryptedS || MAC
+        // Build external authentication command data: encryptedS || MAC
         let cmdData = encryptedS + mac
-        log("📤 外部认证命令数据: \(cmdData.hexString)")
+        log("📤 External authentication command data: \(cmdData.hexString)")
         
         let externalAuthAPDU = NFCISO7816APDU(
             instructionClass: 0x00,
@@ -462,63 +463,63 @@ class ChinesePassportReader: NSObject, ObservableObject {
         
         iso7816Tag.sendCommand(apdu: externalAuthAPDU) { [weak self] data, sw1, sw2, error in
             if let error = error {
-                self?.log("❌ 外部认证失败: \(error)")
+                self?.log("❌ External authentication failed: \(error)")
                 completion(nil)
                 return
             }
             
-            self?.log("📥 外部认证响应: SW1=\(String(format: "%02X", sw1)), SW2=\(String(format: "%02X", sw2))")
-            self?.log("📥 响应数据: \(data.hexString)")
+            self?.log("📥 External authentication response: SW1=\(String(format: "%02X", sw1)), SW2=\(String(format: "%02X", sw2))")
+            self?.log("📥 Response data: \(data.hexString)")
             
             if sw1 == 0x90 && sw2 == 0x00 {
-                self?.log("✅ 外部认证成功")
+                self?.log("✅ External authentication successful")
                 completion(data)
             } else {
-                self?.log("❌ 外部认证失败: SW1=\(String(format: "%02X", sw1)), SW2=\(String(format: "%02X", sw2))")
+                self?.log("❌ External authentication failed: SW1=\(String(format: "%02X", sw1)), SW2=\(String(format: "%02X", sw2))")
                 completion(nil)
             }
         }
     }
     
-    // 提取并保存会话密钥 (ICAO 9303标准实现)
+    // Extract and save session keys (ICAO 9303 standard implementation)
     private func extractAndSaveSessionKeys(from authResponse: Data) {
-        log("🔑 开始提取会话密钥 (ICAO 9303标准)")
+        log("🔑 Starting session key extraction (ICAO 9303 standard)")
         
         guard let bacKEnc = bacKEnc,
               let bacKMac = bacKMac,
               let bacRndIFD = bacRndIFD,
               let bacRndIC = bacRndIC,
-              let kIC = self.bacKIC else { // 使用保存的kIC
-            log("❌ BAC认证数据不完整 (KEnc, KMac, RNDs, or kIC is missing)")
+              let kIC = self.bacKIC else { // Use saved kIC
+            log("❌ BAC authentication data incomplete (KEnc, KMac, RNDs, or kIC is missing)")
             return
         }
         
         guard authResponse.count >= 40 else {
-            log("❌ 认证响应数据长度不足: \(authResponse.count), 期望至少40字节")
+            log("❌ Authentication response data length insufficient: \(authResponse.count), expected at least 40 bytes")
             return
         }
         
-        // 解析响应: encryptedR (32字节) + MAC (8字节)
+        // Parse response: encryptedR (32 bytes) + MAC (8 bytes)
         let encryptedR = authResponse.prefix(32)
         let receivedMAC = authResponse.suffix(8)
         
-        log("🔐 加密的R: \(encryptedR.hexString)")
-        log("🏷️ 接收的MAC: \(Data(receivedMAC).hexString)")
+        log("🔐 Encrypted R: \(encryptedR.hexString)")
+        log("🏷️ Received MAC: \(Data(receivedMAC).hexString)")
         
-        // 验证MAC
+        // Verify MAC
         let expectedMAC = calculateMAC(data: encryptedR, key: bacKMac)
-        log("🏷️ 期望的MAC: \(expectedMAC.hexString)")
+        log("🏷️ Expected MAC: \(expectedMAC.hexString)")
         
         guard Data(receivedMAC) == expectedMAC else {
-            log("❌ MAC验证失败")
+            log("❌ MAC verification failed")
             return
         }
         
-        log("✅ MAC验证成功")
+        log("✅ MAC verification successful")
         
-        // 解密R
+        // Decrypt R
         let decryptedR = decrypt3DESCBC(data: encryptedR, key: bacKEnc, iv: Data(repeating: 0, count: 8))
-        log("🔓 解密的R: \(decryptedR.hexString)")
+        log("🔓 Decrypted R: \(decryptedR.hexString)")
         
         guard decryptedR.count >= 32 else {
             log("❌ 解密数据长度不足: \(decryptedR.count), 期望32字节")
@@ -530,37 +531,37 @@ class ChinesePassportReader: NSObject, ObservableObject {
         let receivedRndIFD = decryptedR.subdata(in: 8..<16)
         let kICC = Data(decryptedR.suffix(16)) // Convert SubSequence to Data to reset indices
         
-        log("🎲 接收的RND.IC: \(Data(receivedRndIC).hexString)")
-        log("🎲 接收的RND.IFD: \(Data(receivedRndIFD).hexString)")
+        log("🎲 Received RND.IC: \(Data(receivedRndIC).hexString)")
+        log("🎲 Received RND.IFD: \(Data(receivedRndIFD).hexString)")
         log("🔑 K.ICC: \(Data(kICC).hexString)")
         
-        // 验证随机数
+        // Verify random numbers
         guard Data(receivedRndIC) == bacRndIC else {
-            log("❌ RND.IC验证失败")
-            log("   - 期望: \(bacRndIC.hexString)")
-            log("   - 收到: \(Data(receivedRndIC).hexString)")
+            log("❌ RND.IC verification failed")
+            log("   - Expected: \(bacRndIC.hexString)")
+            log("   - Received: \(Data(receivedRndIC).hexString)")
             return
         }
         
         guard Data(receivedRndIFD) == bacRndIFD else {
-            log("❌ RND.IFD验证失败")
-            log("   - 期望: \(bacRndIFD.hexString)")
-            log("   - 收到: \(Data(receivedRndIFD).hexString)")
+            log("❌ RND.IFD verification failed")
+            log("   - Expected: \(bacRndIFD.hexString)")
+            log("   - Received: \(Data(receivedRndIFD).hexString)")
             return
         }
         
-        log("✅ 随机数验证成功")
+        log("✅ Random number verification successful")
         
-        // 按照ICAO 9303标准计算会话密钥
-        // 会话密钥种子 KSeed = K.IC XOR K.ICC
+        // Calculate session keys according to ICAO 9303 standard
+        // Session key seed KSeed = K.IC XOR K.ICC
         var sessionKeySeed = Data()
         for i in 0..<16 {
             sessionKeySeed.append(kIC[i] ^ kICC[i])
         }
         
-        log("🌱 会话密钥种子 (K.IC XOR K.ICC): \(sessionKeySeed.hexString)")
+        log("🌱 Session key seed (K.IC XOR K.ICC): \(sessionKeySeed.hexString)")
         
-        // 使用SHA-1派生会话密钥 (ICAO 9303-11, Appendix D.1)
+        // Derive session keys using SHA-1 (ICAO 9303-11, Appendix D.1)
         // KEnc = SHA1(KSeed || 00000001)
         let kEncSeed = sessionKeySeed + Data([0x00, 0x00, 0x00, 0x01])
         let kEncHash = calculateSHA1(data: kEncSeed)
@@ -571,8 +572,8 @@ class ChinesePassportReader: NSObject, ObservableObject {
         let kMacHash = calculateSHA1(data: kMacSeed)
         self.sessionKMac = PassportBACCalculator.adjustParity(key: Data(kMacHash.prefix(16)))
         
-        // 初始化SSC (Send Sequence Counter)
-        // SSC = RND.IC的后4字节 + RND.IFD的后4字节
+        // Initialize SSC (Send Sequence Counter)
+        // SSC = Last 4 bytes of RND.IC + Last 4 bytes of RND.IFD
         let sscInitData = Data(bacRndIC.suffix(4)) + Data(bacRndIFD.suffix(4))
         // Manually construct the UInt64 from big-endian bytes to ensure all bytes are processed
         var tempSsc: UInt64 = 0
@@ -581,14 +582,14 @@ class ChinesePassportReader: NSObject, ObservableObject {
         }
         self.ssc = tempSsc
         
-        log("✅ 会话密钥派生完成")
-        log("🔑 会话KEnc: \(sessionKEnc!.hexString)")
-        log("🔑 会话KMac: \(sessionKMac!.hexString)")
-        log("🔢 初始SSC Raw Data: \(sscInitData.hexString)")
-        log("🔢 初始SSC Value: \(String(format: "%016X", ssc))")
+        log("✅ Session key derivation completed")
+        log("🔑 Session KEnc: \(sessionKEnc!.hexString)")
+        log("🔑 Session KMac: \(sessionKMac!.hexString)")
+        log("🔢 Initial SSC Raw Data: \(sscInitData.hexString)")
+        log("🔢 Initial SSC Value: \(String(format: "%016X", ssc))")
     }
     
-    // 计算SHA-1哈希
+    // Calculate SHA-1 hash
     private func calculateSHA1(data: Data) -> Data {
         var hash = [UInt8](repeating: 0, count: Int(CC_SHA1_DIGEST_LENGTH))
         _ = data.withUnsafeBytes { bytes in
@@ -597,100 +598,100 @@ class ChinesePassportReader: NSObject, ObservableObject {
         return Data(hash)
     }
     
-    // MARK: - 安全消息传递 (Secure Messaging)
+    // MARK: - Secure Messaging
     
-    // 使用安全消息传递读取文件
+    // Read file using secure messaging
     private func readFileWithSecureMessaging(
         iso7816Tag: NFCISO7816Tag,
         session: NFCTagReaderSession,
         fileID: Data,
         fileName: String
     ) {
-        log("📂 开始读取文件: \(fileName)")
-        log("📂 文件ID: \(fileID.hexString)")
+        log("📂 Starting to read file: \(fileName)")
+        log("📂 File ID: \(fileID.hexString)")
         
-        // 1. 选择文件
+        // 1. Select file
         let selectAPDU = createSecureSelectAPDU(fileID: fileID)
         
         iso7816Tag.sendCommand(apdu: selectAPDU) { [weak self] data, sw1, sw2, error in
             guard let self = self else { return }
             
             if let error = error {
-                self.log("❌ 选择\(fileName)文件失败: \(error)")
-                self.handleReadError(session: session, message: "选择文件失败")
+                self.log("❌ Failed to select \(fileName) file: \(error)")
+                self.handleReadError(session: session, message: "File selection failed")
                 return
             }
             
-            self.log("📂 选择\(fileName)响应: SW1=\(String(format: "%02X", sw1)), SW2=\(String(format: "%02X", sw2))")
+            self.log("📂 Select \(fileName) response: SW1=\(String(format: "%02X", sw1)), SW2=\(String(format: "%02X", sw2))")
             
-            // 处理特定错误码
+            // Handle specific error codes
             switch (sw1, sw2) {
             case (0x90, 0x00):
-                self.log("✅ \(fileName)文件选择成功")
+                self.log("✅ \(fileName) file selection successful")
                 
-                // 2. 检测文件长度
+                // 2. Detect file length
                 self.detectFileLength(iso7816Tag: iso7816Tag, session: session, fileName: fileName)
                 
             case (0x69, 0x82):
-                self.log("❌ 安全状态不满足 - 需要重新认证")
-                self.handleReadError(session: session, message: "安全状态不满足，需要重新认证")
+                self.log("❌ Security status not satisfied - re-authentication required")
+                self.handleReadError(session: session, message: "Security status not satisfied, re-authentication required")
                 
             case (0x6A, 0x82):
-                self.log("❌ 文件未找到")
-                self.handleReadError(session: session, message: "文件未找到")
+                self.log("❌ File not found")
+                self.handleReadError(session: session, message: "File not found")
                 
             case (0x67, 0x00):
-                self.log("❌ Le字段错误")
-                self.handleReadError(session: session, message: "命令长度错误")
+                self.log("❌ Le field error")
+                self.handleReadError(session: session, message: "Command length error")
                 
             case (0x69, 0x88):
-                self.log("❌ 安全消息传递数据对象错误")
-                self.handleReadError(session: session, message: "安全消息传递格式错误")
+                self.log("❌ Secure messaging data object error")
+                self.handleReadError(session: session, message: "Secure messaging format error")
                 
             default:
-                self.log("❌ \(fileName)文件选择失败: SW1=\(String(format: "%02X", sw1)), SW2=\(String(format: "%02X", sw2))")
-                self.handleReadError(session: session, message: "文件选择失败: \(String(format: "%02X%02X", sw1, sw2))")
+                self.log("❌ \(fileName) file selection failed: SW1=\(String(format: "%02X", sw1)), SW2=\(String(format: "%02X", sw2))")
+                self.handleReadError(session: session, message: "File selection failed: \(String(format: "%02X%02X", sw1, sw2))")
             }
         }
     }
     
-    // 检测文件长度
+    // Detect file length
     private func detectFileLength(
         iso7816Tag: NFCISO7816Tag,
         session: NFCTagReaderSession,
         fileName: String
     ) {
-        log("📏 检测\(fileName)文件长度")
+        log("📏 Detecting \(fileName) file length")
         
-        // 先尝试读取前4字节来获取文件长度信息
+        // First try to read the first 4 bytes to get file length information
         let readHeaderAPDU = createSecureReadAPDU(offset: 0, length: 4)
         
         iso7816Tag.sendCommand(apdu: readHeaderAPDU) { [weak self] data, sw1, sw2, error in
             guard let self = self else { return }
             
             if let error = error {
-                self.log("❌ 读取\(fileName)头部失败: \(error)")
-                self.handleReadError(session: session, message: "读取文件头部失败")
+                self.log("❌ Failed to read \(fileName) header: \(error)")
+                self.handleReadError(session: session, message: "Failed to read file header")
                 return
             }
             
             if sw1 == 0x90 && sw2 == 0x00 {
-                // 解密响应数据
+                // Decrypt response data
                 let decryptedData = self.decryptSecureResponse(data)
-                self.log("📏 \(fileName)头部数据: \(decryptedData.hexString)")
+                self.log("📏 \(fileName) header data: \(decryptedData.hexString)")
                 
-                // 解析文件长度（通常在前几个字节）
-                var fileLength = 255 // 默认长度
+                // Parse file length (usually in the first few bytes)
+                var fileLength = 255 // Default length
                 
                 if decryptedData.count >= 4 {
-                    // 尝试解析DER/TLV格式的长度
+                    // Try to parse DER/TLV format length
                     if decryptedData[0] == 0x60 || decryptedData[0] == 0x61 {
-                        // BER/DER格式
+                        // BER/DER format
                         if decryptedData[1] & 0x80 == 0 {
-                            // 短格式
+                            // Short format
                             fileLength = Int(decryptedData[1])
                         } else {
-                            // 长格式
+                            // Long format
                             let lengthBytes = Int(decryptedData[1] & 0x7F)
                             if lengthBytes <= 2 && decryptedData.count > 1 + lengthBytes {
                                 fileLength = 0
@@ -702,10 +703,10 @@ class ChinesePassportReader: NSObject, ObservableObject {
                     }
                 }
                 
-                fileLength = min(fileLength + 10, 1024) // 添加一些缓冲，限制最大长度
-                self.log("📏 估算\(fileName)文件长度: \(fileLength)字节")
+                fileLength = min(fileLength + 10, 1024) // Add some buffer, limit maximum length
+                self.log("📏 Estimated \(fileName) file length: \(fileLength) bytes")
                 
-                // 开始分块读取文件
+                // Start reading file in chunks
                 self.readFileInChunks(
                     iso7816Tag: iso7816Tag,
                     session: session,
@@ -714,8 +715,8 @@ class ChinesePassportReader: NSObject, ObservableObject {
                 )
                 
             } else {
-                self.log("❌ 读取\(fileName)头部失败: SW1=\(String(format: "%02X", sw1)), SW2=\(String(format: "%02X", sw2))")
-                // 回退到默认长度读取
+                self.log("❌ Failed to read \(fileName) header: SW1=\(String(format: "%02X", sw1)), SW2=\(String(format: "%02X", sw2))")
+                // Fall back to default length reading
                 self.readFileInChunks(
                     iso7816Tag: iso7816Tag,
                     session: session,
@@ -726,25 +727,25 @@ class ChinesePassportReader: NSObject, ObservableObject {
         }
     }
     
-    // 分块读取文件
+    // Read file in chunks
     private func readFileInChunks(
         iso7816Tag: NFCISO7816Tag,
         session: NFCTagReaderSession,
         fileName: String,
         totalLength: Int
     ) {
-        log("📚 开始分块读取\(fileName)，总长度: \(totalLength)字节")
+        log("📚 Starting to read \(fileName) in chunks, total length: \(totalLength) bytes")
         
         var allData = Data()
-        let chunkSize = 240 // 每次读取240字节
+        let chunkSize = 240 // Read 240 bytes each time
         
         func readNextChunk(offset: Int) {
             guard offset < totalLength else {
-                // 读取完成
-                self.log("✅ \(fileName)读取完成，总数据: \(allData.count)字节")
-                self.log("📄 \(fileName)原始数据: \(allData.hexString)")
+                // Reading completed
+                self.log("✅ \(fileName) reading completed, total data: \(allData.count) bytes")
+                self.log("📄 \(fileName) raw data: \(allData.hexString)")
                 
-                // 处理读取到的数据
+                // Process the read data
                 self.processReadData(fileName: fileName, data: allData, session: session)
                 return
             }
@@ -752,7 +753,7 @@ class ChinesePassportReader: NSObject, ObservableObject {
             let remainingBytes = totalLength - offset
             let currentChunkSize = min(chunkSize, remainingBytes)
             
-            self.log("📖 读取\(fileName) offset=\(offset), length=\(currentChunkSize)")
+            self.log("📖 Reading \(fileName) offset=\(offset), length=\(currentChunkSize)")
             
             let readAPDU = self.createSecureReadAPDU(offset: offset, length: currentChunkSize)
             
@@ -760,36 +761,36 @@ class ChinesePassportReader: NSObject, ObservableObject {
                 guard let self = self else { return }
                 
                 if let error = error {
-                    self.log("❌ 读取\(fileName)块失败: \(error)")
-                    self.handleReadError(session: session, message: "读取文件块失败")
+                    self.log("❌ Failed to read \(fileName) chunk: \(error)")
+                    self.handleReadError(session: session, message: "Failed to read file chunk")
                     return
                 }
                 
                 if sw1 == 0x90 && sw2 == 0x00 {
-                    // 解密响应数据
+                    // Decrypt response data
                     let decryptedData = self.decryptSecureResponse(data)
-                    self.log("📖 \(fileName)块数据: \(decryptedData.hexString)")
+                    self.log("📖 \(fileName) chunk data: \(decryptedData.hexString)")
                     
                     allData.append(decryptedData)
                     
-                    // 读取下一块
+                    // Read next chunk
                     readNextChunk(offset: offset + currentChunkSize)
                     
                 } else if sw1 == 0x6B && sw2 == 0x00 {
-                    // 到达文件末尾
-                    self.log("📄 \(fileName)已到达文件末尾")
-                    self.log("✅ \(fileName)读取完成，总数据: \(allData.count)字节")
+                    // End of file reached
+                    self.log("📄 \(fileName) reached end of file")
+                    self.log("✅ \(fileName) reading completed, total data: \(allData.count) bytes")
                     self.processReadData(fileName: fileName, data: allData, session: session)
                     
                 } else {
-                    self.log("❌ 读取\(fileName)块失败: SW1=\(String(format: "%02X", sw1)), SW2=\(String(format: "%02X", sw2))")
+                    self.log("❌ Failed to read \(fileName) chunk: SW1=\(String(format: "%02X", sw1)), SW2=\(String(format: "%02X", sw2))")
                     
-                    // 某些错误可以尝试用已读取的数据
+                    // Some errors can try with already read data
                     if !allData.isEmpty {
-                        self.log("⚠️ 使用已读取的部分数据")
+                        self.log("⚠️ Using partially read data")
                         self.processReadData(fileName: fileName, data: allData, session: session)
                     } else {
-                        self.handleReadError(session: session, message: "读取文件失败: \(String(format: "%02X%02X", sw1, sw2))")
+                        self.handleReadError(session: session, message: "Failed to read file: \(String(format: "%02X%02X", sw1, sw2))")
                     }
                 }
             }
@@ -813,28 +814,28 @@ class ChinesePassportReader: NSObject, ObservableObject {
             )
         }
 
-        // 1. 递增 SSC
+        // 1. Increment SSC
         ssc += 1
         let sscData = Data(withUnsafeBytes(of: ssc.bigEndian) { Data($0) })
         log("🔒 SSC: \(String(format: "%016X", ssc))")
 
         // 2. Protected header
-        let claProtected: UInt8 = 0x00 | 0x0C      // SM, no secure‑messaging indicators set except SM bits
+        let claProtected: UInt8 = 0x00 | 0x0C      // SM, no secure-messaging indicators set except SM bits
         let ins: UInt8 = 0xA4
         let p1: UInt8  = 0x02
         let p2: UInt8  = 0x0C
         let header     = Data([claProtected, ins, p1, p2])
 
-        // 3. DO87 – PLAIN (未加密) 文件 ID
-        //    ICAO 9303 / BSI TR‑03105: DO87 value must begin with 0x01 to indicate
+        // 3. DO87 – PLAIN (unencrypted) file ID
+        //    ICAO 9303 / BSI TR-03105: DO87 value must begin with 0x01 to indicate
         //    unencrypted bytes.  Length = 1 (indicator) + FID length (2 bytes).
         let do87Value = Data([0x01]) + fileID            // 0x01 | FID
         let do87       = Data([0x87, UInt8(do87Value.count)]) + do87Value
         log("🔒 DO87 (plain FID): \(do87.hexString)")
 
-        // 4. 根据 ICAO 9303 标准，SELECT 命令不需要 DO97（Le）
-        //    当不期望返回数据时，只包含 DO87 和 DO8E
-        log("🔒 跳过 DO97 - SELECT 命令不需要 Le 字段")
+        // 4. According to ICAO 9303 standard, SELECT command doesn't need DO97 (Le)
+        //    When no return data is expected, only include DO87 and DO8E
+        log("🔒 Skipping DO97 - SELECT command doesn't need Le field")
 
         // 5. Lcʹ – length of *protected* data objects (DO87 + optional DO97).
         //    For SELECT FILE we have only DO87, so this is always 5 (0x05).
@@ -865,7 +866,7 @@ class ChinesePassportReader: NSObject, ObservableObject {
         )
     }
     
-    // 创建安全读取APDU
+    // Create secure read APDU
     private func createSecureReadAPDU(offset: Int, length: Int) -> NFCISO7816APDU {
         return createSecureMessageAPDU(
             cla: 0x00,
@@ -877,7 +878,7 @@ class ChinesePassportReader: NSObject, ObservableObject {
         )
     }
     
-    // 创建安全消息传递APDU (完整实现)
+    // Create secure messaging APDU (complete implementation)
     private func createSecureMessageAPDU(
         cla: UInt8,
         ins: UInt8,
@@ -886,11 +887,11 @@ class ChinesePassportReader: NSObject, ObservableObject {
         data: Data,
         le: Int?
     ) -> NFCISO7816APDU {
-        log("🔒 创建安全消息传递APDU: CLA=\(String(format: "%02X", cla)), INS=\(String(format: "%02X", ins))")
+        log("🔒 Creating secure messaging APDU: CLA=\(String(format: "%02X", cla)), INS=\(String(format: "%02X", ins))")
         
         guard let sessionKEnc = sessionKEnc,
               let sessionKMac = sessionKMac else {
-            log("❌ 会话密钥未建立，回退到普通APDU")
+            log("❌ Session keys not established, falling back to plain APDU")
             return NFCISO7816APDU(
                 instructionClass: 0x00,
                 instructionCode: ins,
@@ -1380,8 +1381,17 @@ extension ChinesePassportReader: NFCTagReaderSessionDelegate {
                 // Step 3: 提取会话密钥
                 self.extractAndSaveSessionKeys(from: authResponse)
                 
-                // Step 4: 开始读取护照数据
-                self.readPassportData(iso7816Tag: iso7816Tag, session: session)
+                // Step 4: 显示BAC认证成功状态
+                DispatchQueue.main.async {
+                    self.bacAuthenticated = true
+                    self.statusMessage = "通过BAC检查"
+                }
+                
+                // Step 5: 等待2秒后开始读取护照数据
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                    self.bacAuthenticated = false
+                    self.readPassportData(iso7816Tag: iso7816Tag, session: session)
+                }
             }
         }
     }

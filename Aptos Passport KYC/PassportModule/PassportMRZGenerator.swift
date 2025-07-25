@@ -1,21 +1,32 @@
 //
 //  PassportMRZGenerator.swift
-//  Aptos Passport KYC
+//         let nationality: String         // Nationality code (3 characters, e.g. "CHN")
+        let dateOfBirth: String        // Date of birth (YYMMDD)
+        let gender: String             // Gender ("M"/"F"/"<")
+        let dateOfExpiry: String       // Date of expiry (YYMMDD)
+        let personalNumber: String?    // Personal number (optional)
+    }
+    
+    // MARK: - Public Methods
+    
+    /// Generate complete passport MRZ
+    /// - Parameter info: Passport information
+    /// - Returns: Complete MRZ dataort KYC
 //
 //  Created by Harold on 2025/7/19.
 //
 
 import Foundation
 
-/// 护照MRZ(Machine Readable Zone)生成器
-/// 按照ICAO 9303标准生成完整的护照MRZ
+/// Passport MRZ (Machine Readable Zone) generator
+/// Generates complete passport MRZ according to ICAO 9303 standard
 class PassportMRZGenerator {
     
-    // MARK: - MRZ数据结构
+    // MARK: - MRZ Data Structures
     
     struct MRZData {
-        let line1: String  // 第一行 (44字符)
-        let line2: String  // 第二行 (44字符)
+        let line1: String  // First line (44 characters)
+        let line2: String  // Second line (44 characters)
         
         var fullMRZ: String {
             return line1 + line2
@@ -23,19 +34,19 @@ class PassportMRZGenerator {
         
         var displayFormat: String {
             return """
-            第一行: \(line1)
-            第二行: \(line2)
+            Line 1: \(line1)
+            Line 2: \(line2)
             """
         }
     }
     
     struct PassportInfo {
-        let documentType: String        // 文档类型 (通常是"P")
-        let issuingCountry: String      // 签发国家代码 (3字符，如"CHN")
-        let lastName: String            // 姓
-        let firstName: String           // 名
-        let passportNumber: String      // 护照号
-        let nationality: String         // 国籍代码 (3字符，如"CHN")
+        let documentType: String        // Document type (usually "P")
+        let issuingCountry: String      // Issuing country code (3 characters, e.g. "CHN")
+        let lastName: String            // Last name
+        let firstName: String           // First name
+        let passportNumber: String      // Passport number
+        let nationality: String         // Nationality code (3 characters, e.g. "CHN")
         let dateOfBirth: String        // 出生日期 (YYMMDD)
         let gender: String             // 性别 ("M"/"F"/"<")
         let dateOfExpiry: String       // 到期日期 (YYMMDD)
@@ -51,23 +62,23 @@ class PassportMRZGenerator {
         let line1 = generateLine1(info: info)
         let line2 = generateLine2(info: info)
         
-        print("🔹 [MRZ Generator] 生成完整MRZ:")
-        print("🔹 [MRZ Generator] 第一行: '\(line1)'")
-        print("🔹 [MRZ Generator] 第二行: '\(line2)'")
-        print("🔹 [MRZ Generator] 第一行长度: \(line1.count)")
-        print("🔹 [MRZ Generator] 第二行长度: \(line2.count)")
+        print("🔹 [MRZ Generator] Generating complete MRZ:")
+        print("🔹 [MRZ Generator] Line 1: '\(line1)'")
+        print("🔹 [MRZ Generator] Line 2: '\(line2)'")
+        print("🔹 [MRZ Generator] Line 1 length: \(line1.count)")
+        print("🔹 [MRZ Generator] Line 2 length: \(line2.count)")
         
         return MRZData(line1: line1, line2: line2)
     }
     
-    /// 从护照基本信息生成MRZ (简化版本)
+    /// Generate MRZ from basic passport information (simplified version)
     /// - Parameters:
-    ///   - passportNumber: 护照号
-    ///   - dateOfBirth: 出生日期 (YYMMDD)
-    ///   - dateOfExpiry: 到期日期 (YYMMDD)
-    ///   - lastName: 姓 (可选，默认为"UNKNOWN")
-    ///   - firstName: 名 (可选，默认为"UNKNOWN")
-    /// - Returns: 完整的MRZ数据
+    ///   - passportNumber: Passport number
+    ///   - dateOfBirth: Date of birth (YYMMDD)
+    ///   - dateOfExpiry: Date of expiry (YYMMDD)
+    ///   - lastName: Last name (optional, defaults to "UNKNOWN")
+    ///   - firstName: First name (optional, defaults to "UNKNOWN")
+    /// - Returns: Complete MRZ data
     static func generateMRZ(
         passportNumber: String,
         dateOfBirth: String,
@@ -91,81 +102,81 @@ class PassportMRZGenerator {
         return generateMRZ(from: info)
     }
     
-    // MARK: - 私有方法
+    // MARK: - Private Methods
     
-    /// 生成MRZ第一行
-    /// 格式: P<ISSCOUNTRY<LASTNAME<<FIRSTNAME<<<<<<<<<<<<<<<<<<<<<<
-    /// 长度: 44字符
+    /// Generate MRZ first line
+    /// Format: P<ISSCOUNTRY<LASTNAME<<FIRSTNAME<<<<<<<<<<<<<<<<<<<<<<
+    /// Length: 44 characters
     private static func generateLine1(info: PassportInfo) -> String {
         var line1 = ""
         
-        // 1. 文档类型 (1字符)
+        // 1. Document type (1 character)
         line1 += info.documentType
         
-        // 2. 国家代码标识符 "<" (1字符)
+        // 2. Country code identifier "<" (1 character)
         line1 += "<"
         
-        // 3. 签发国家代码 (3字符)
+        // 3. Issuing country code (3 characters)
         line1 += formatCountryCode(info.issuingCountry)
         
-        // 4. 姓名部分 (39字符)
+        // 4. Name field (39 characters)
         let nameField = formatNameField(lastName: info.lastName, firstName: info.firstName, maxLength: 39)
         line1 += nameField
         
-        // 确保长度为44字符
+        // Ensure length is 44 characters
         line1 = padToLength(line1, length: 44)
         
         return line1
     }
     
-    /// 生成MRZ第二行
-    /// 格式: PASSPORTNUMBER<NATIONALITY<YYMMDD<GENDER<YYMMDD<PERSONALNUMBER<<CHECKDIGIT
-    /// 长度: 44字符
+    /// Generate MRZ second line
+    /// Format: PASSPORTNUMBER<NATIONALITY<YYMMDD<GENDER<YYMMDD<PERSONALNUMBER<<CHECKDIGIT
+    /// Length: 44 characters
     private static func generateLine2(info: PassportInfo) -> String {
         var line2 = ""
         
-        // 1. 护照号码 (9字符) + 校验位 (1字符)
+        // 1. Passport number (9 characters) + check digit (1 character)
         let formattedPassportNumber = formatPassportNumber(info.passportNumber)
         let passportCheckDigit = calculateCheckDigit(formattedPassportNumber)
         line2 += formattedPassportNumber + passportCheckDigit
         
-        // 2. 国籍代码 (3字符)
+        // 2. Nationality code (3 characters)
         line2 += formatCountryCode(info.nationality)
         
-        // 3. 出生日期 (6字符) + 校验位 (1字符)
+        // 3. Date of birth (6 characters) + check digit (1 character)
         let formattedBirthDate = formatDate(info.dateOfBirth)
         let birthCheckDigit = calculateCheckDigit(formattedBirthDate)
         line2 += formattedBirthDate + birthCheckDigit
         
-        // 4. 性别 (1字符)
+        // 4. Gender (1 character)
         line2 += formatGender(info.gender)
         
-        // 5. 到期日期 (6字符) + 校验位 (1字符)
+        // 5. Date of expiry (6 characters) + check digit (1 character)
         let formattedExpiryDate = formatDate(info.dateOfExpiry)
         let expiryCheckDigit = calculateCheckDigit(formattedExpiryDate)
         line2 += formattedExpiryDate + expiryCheckDigit
         
-        // 6. 个人号码字段 (14字符)
+        // 6. Personal number field (14 characters)
         let personalNumberField = formatPersonalNumber(info.personalNumber, maxLength: 14)
         line2 += personalNumberField
         
-        // 7. 个人号码校验位 (1字符)
+        // 7. Personal number check digit (1 character)
         let personalNumberCheckDigit = calculateCheckDigit(personalNumberField)
         line2 += personalNumberCheckDigit
         
-        // 8. 总校验位 (1字符) - 对整个第二行的特定部分进行校验
+        // 8. Overall check digit (1 character) - checksum for specific parts of the entire second line
         let overallCheckDigit = calculateOverallCheckDigit(line2: line2, info: info)
         line2 += overallCheckDigit
         
-        // 确保长度为44字符
+        // Ensure length is 44 characters
         line2 = padToLength(line2, length: 44)
         
         return line2
     }
     
-    // MARK: - 格式化辅助方法
+    // MARK: - Formatting Helper Methods
     
-    /// 格式化护照号码
+    /// Format passport number
     private static func formatPassportNumber(_ passportNumber: String) -> String {
         let cleanNumber = passportNumber.uppercased()
             .trimmingCharacters(in: .whitespacesAndNewlines)
@@ -178,7 +189,7 @@ class PassportMRZGenerator {
         }
     }
     
-    /// 格式化国家代码
+    /// Format country code
     private static func formatCountryCode(_ countryCode: String) -> String {
         let cleanCode = countryCode.uppercased()
             .trimmingCharacters(in: .whitespacesAndNewlines)
@@ -190,7 +201,7 @@ class PassportMRZGenerator {
         }
     }
     
-    /// 格式化姓名字段
+    /// Format name field
     private static func formatNameField(lastName: String, firstName: String, maxLength: Int) -> String {
         let cleanLastName = lastName.uppercased()
             .trimmingCharacters(in: .whitespacesAndNewlines)
@@ -200,21 +211,21 @@ class PassportMRZGenerator {
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .replacingOccurrences(of: " ", with: "<")
         
-        // 格式: LASTNAME<<FIRSTNAME
+        // Format: LASTNAME<<FIRSTNAME
         var nameField = cleanLastName + "<<" + cleanFirstName
         
-        // 如果超过最大长度，截断
+        // If exceeds maximum length, truncate
         if nameField.count > maxLength {
             nameField = String(nameField.prefix(maxLength))
         } else {
-            // 用<填充到指定长度
+            // Pad with < to specified length
             nameField += String(repeating: "<", count: maxLength - nameField.count)
         }
         
         return nameField
     }
     
-    /// 格式化日期
+    /// Format date
     private static func formatDate(_ date: String) -> String {
         let cleanDate = date.trimmingCharacters(in: .whitespacesAndNewlines)
         
@@ -225,7 +236,7 @@ class PassportMRZGenerator {
         }
     }
     
-    /// 格式化性别
+    /// Format gender
     private static func formatGender(_ gender: String) -> String {
         let cleanGender = gender.uppercased().trimmingCharacters(in: .whitespacesAndNewlines)
         
@@ -239,7 +250,7 @@ class PassportMRZGenerator {
         }
     }
     
-    /// 格式化个人号码字段
+    /// Format personal number field
     private static func formatPersonalNumber(_ personalNumber: String?, maxLength: Int) -> String {
         guard let personalNumber = personalNumber, !personalNumber.isEmpty else {
             return String(repeating: "<", count: maxLength)
@@ -256,7 +267,7 @@ class PassportMRZGenerator {
         }
     }
     
-    /// 填充到指定长度
+    /// Pad to specified length
     private static func padToLength(_ string: String, length: Int) -> String {
         if string.count >= length {
             return String(string.prefix(length))
@@ -265,9 +276,9 @@ class PassportMRZGenerator {
         }
     }
     
-    // MARK: - 校验位计算
+    // MARK: - Check Digit Calculation
     
-    /// 计算校验位（按照ICAO 9303标准）
+    /// Calculate check digit (according to ICAO 9303 standard)
     private static func calculateCheckDigit(_ input: String) -> String {
         let weights = [7, 3, 1]
         var sum = 0
@@ -281,7 +292,7 @@ class PassportMRZGenerator {
             } else if char == "<" {
                 value = 0
             } else {
-                // 字母转换为数字（A=10, B=11, ..., Z=35）
+                // Convert letters to numbers (A=10, B=11, ..., Z=35)
                 let ascii = char.asciiValue ?? 0
                 if ascii >= 65 && ascii <= 90 { // A-Z
                     value = Int(ascii - 55)
@@ -294,10 +305,10 @@ class PassportMRZGenerator {
         return String(sum % 10)
     }
     
-    /// 计算总校验位
-    /// 对护照号+校验位+出生日期+校验位+到期日期+校验位+个人号码+校验位进行校验
+    /// Calculate overall check digit
+    /// Checksum for passport number+check digit+birth date+check digit+expiry date+check digit+personal number+check digit
     private static func calculateOverallCheckDigit(line2: String, info: PassportInfo) -> String {
-        // 构建用于总校验的字符串
+        // Build string for overall checksum
         let passportPart = formatPassportNumber(info.passportNumber) + calculateCheckDigit(formatPassportNumber(info.passportNumber))
         let birthPart = formatDate(info.dateOfBirth) + calculateCheckDigit(formatDate(info.dateOfBirth))
         let expiryPart = formatDate(info.dateOfExpiry) + calculateCheckDigit(formatDate(info.dateOfExpiry))
@@ -310,40 +321,40 @@ class PassportMRZGenerator {
     }
 }
 
-// MARK: - 扩展方法
+// MARK: - Extension Methods
 
 extension PassportMRZGenerator {
     
-    /// 验证MRZ格式是否正确
+    /// Validate if MRZ format is correct
     static func validateMRZ(_ mrz: MRZData) -> Bool {
         return mrz.line1.count == 44 && mrz.line2.count == 44
     }
     
-    /// 从MRZ中提取BAC所需的信息
-    /// - Parameter mrz: 完整的MRZ数据
-    /// - Returns: BAC计算所需的信息 (护照号+校验位+出生日期+校验位+到期日期+校验位)
+    /// Extract BAC required information from MRZ
+    /// - Parameter mrz: Complete MRZ data
+    /// - Returns: Information required for BAC calculation (passport number+check digit+birth date+check digit+expiry date+check digit)
     static func extractBACString(from mrz: MRZData) -> String {
-        // 从第二行提取BAC所需的部分
+        // Extract BAC required parts from second line
         let line2 = mrz.line2
         
-        // 护照号(9) + 校验位(1) = 位置0-9
+        // Passport number(9) + check digit(1) = positions 0-9
         let passportPart = String(line2.prefix(10))
         
-        // 跳过国籍代码(3) = 位置10-12
-        // 出生日期(6) + 校验位(1) = 位置13-19
+        // Skip nationality code(3) = positions 10-12
+        // Birth date(6) + check digit(1) = positions 13-19
         let birthPart = String(line2.dropFirst(13).prefix(7))
         
-        // 跳过性别(1) = 位置20
-        // 到期日期(6) + 校验位(1) = 位置21-27
+        // Skip gender(1) = position 20
+        // Expiry date(6) + check digit(1) = positions 21-27
         let expiryPart = String(line2.dropFirst(21).prefix(7))
         
         let bacString = passportPart + birthPart + expiryPart
         
-        print("🔹 [MRZ Generator] BAC字符串提取:")
-        print("🔹 [MRZ Generator] 护照部分: '\(passportPart)'")
-        print("🔹 [MRZ Generator] 出生部分: '\(birthPart)'")
-        print("🔹 [MRZ Generator] 到期部分: '\(expiryPart)'")
-        print("🔹 [MRZ Generator] BAC字符串: '\(bacString)' (长度: \(bacString.count))")
+        print("🔹 [MRZ Generator] BAC string extraction:")
+        print("🔹 [MRZ Generator] Passport part: '\(passportPart)'")
+        print("🔹 [MRZ Generator] Birth part: '\(birthPart)'")
+        print("🔹 [MRZ Generator] Expiry part: '\(expiryPart)'")
+        print("🔹 [MRZ Generator] BAC string: '\(bacString)' (length: \(bacString.count))")
         
         return bacString
     }

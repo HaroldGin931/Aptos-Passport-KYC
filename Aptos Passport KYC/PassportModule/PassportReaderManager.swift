@@ -8,7 +8,7 @@
 import Foundation
 import CoreNFC
 
-// 兼容性类，为了不影响现有代码
+// Compatibility class to avoid affecting existing code
 class PassportReaderManager: ObservableObject {
     static let shared = PassportReaderManager()
     

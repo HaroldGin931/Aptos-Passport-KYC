@@ -10,12 +10,12 @@ import AVFoundation
 import Vision
 import CoreImage
 
-// MARK: - CameraManager —— 负责采集像素缓冲并发布
+// MARK: - CameraManager —— Responsible for capturing pixel buffers and publishing
 final class CameraManager: NSObject, ObservableObject {
     
-    @Published var latestPixelBuffer: CVPixelBuffer?     // 最新视频帧
-    @Published var session = AVCaptureSession()          // 公开发布 session
-    @Published var isRunning = false                     // 摄像头运行状态
+    @Published var latestPixelBuffer: CVPixelBuffer?     // Latest video frame
+    @Published var session = AVCaptureSession()          // Publicly published session
+    @Published var isRunning = false                     // Camera running status
     
     private let videoOutput = AVCaptureVideoDataOutput()
     private let sessionQueue = DispatchQueue(label: "cam.queue", qos: .userInitiated)
@@ -25,7 +25,7 @@ final class CameraManager: NSObject, ObservableObject {
         setupCamera()
     }
     
-    /// 设置摄像头配置
+    /// Set up camera configuration
     private func setupCamera() {
         session.beginConfiguration()
         session.sessionPreset = .vga640x480
@@ -55,22 +55,22 @@ final class CameraManager: NSObject, ObservableObject {
         session.commitConfiguration()
     }
     
-    /// 启动摄像头
+    /// Start camera
     func start() {
         guard !isRunning else { 
             #if DEBUG
-            Swift.print("📹 [CameraManager] 摄像头已在运行，跳过启动")
+            Swift.print("📹 [CameraManager] Camera already running, skipping start")
             #endif
             return 
         }
         
         #if DEBUG
-        Swift.print("📹 [CameraManager] 开始启动摄像头")
+        Swift.print("📹 [CameraManager] Starting camera")
         #endif
         
         sessionQueue.async {
             #if DEBUG
-            Swift.print("📹 [CameraManager] 在session队列中启动摄像头")
+            Swift.print("📹 [CameraManager] Starting camera in session queue")
             #endif
             
             self.session.startRunning()
@@ -78,28 +78,28 @@ final class CameraManager: NSObject, ObservableObject {
             DispatchQueue.main.async {
                 self.isRunning = true
                 #if DEBUG
-                Swift.print("📹 [CameraManager] 摄像头启动完成，状态已更新")
+                Swift.print("📹 [CameraManager] Camera startup completed, status updated")
                 #endif
             }
         }
     }
     
-    /// 停止摄像头
+    /// Stop camera
     func stop() {
         guard isRunning else { 
             #if DEBUG
-            Swift.print("📹 [CameraManager] 摄像头已停止，跳过停止操作")
+            Swift.print("📹 [CameraManager] Camera already stopped, skipping stop operation")
             #endif
             return 
         }
         
         #if DEBUG
-        Swift.print("📹 [CameraManager] 开始停止摄像头")
+        Swift.print("📹 [CameraManager] Starting to stop camera")
         #endif
         
         sessionQueue.async {
             #if DEBUG
-            Swift.print("📹 [CameraManager] 在session队列中停止摄像头")
+            Swift.print("📹 [CameraManager] Stopping camera in session queue")
             #endif
             
             self.session.stopRunning()
@@ -107,33 +107,33 @@ final class CameraManager: NSObject, ObservableObject {
             DispatchQueue.main.async {
                 self.isRunning = false
                 #if DEBUG
-                Swift.print("📹 [CameraManager] 摄像头停止完成，状态已更新")
+                Swift.print("📹 [CameraManager] Camera stop completed, status updated")
                 #endif
             }
         }
     }
     
-    /// 从当前帧中提取人脸图像
+    /// Extract face image from current frame
     func extractFaceImage(from pixelBuffer: CVPixelBuffer) -> UIImage? {
         #if DEBUG
-        Swift.print("🔍 [CameraManager] 开始从像素缓冲区提取人脸图像")
+        Swift.print("🔍 [CameraManager] Starting to extract face image from pixel buffer")
         #endif
         
         var detector = FaceDetector()
         let detection = detector.detect(in: pixelBuffer)
         
         #if DEBUG
-        Swift.print("🔍 [CameraManager] 人脸检测结果: 数量=\(detection.count), 第一个框=\(detection.firstBox?.debugDescription ?? "无")")
+        Swift.print("🔍 [CameraManager] Face detection result: count=\(detection.count), first box=\(detection.firstBox?.debugDescription ?? "none")")
         #endif
         
         guard let box = detection.firstBox else {
             #if DEBUG
-            Swift.print("🔍 [CameraManager] 未检测到人脸，返回nil")
+            Swift.print("🔍 [CameraManager] No face detected, returning nil")
             #endif
             return nil
         }
         
-        // 计算像素 ROI (翻转 Y 轴)
+        // Calculate pixel ROI (flip Y axis)
         let w = CGFloat(CVPixelBufferGetWidth(pixelBuffer))
         let h = CGFloat(CVPixelBufferGetHeight(pixelBuffer))
         let rect = CGRect(x: box.origin.x * w,
@@ -142,44 +142,44 @@ final class CameraManager: NSObject, ObservableObject {
                           height: box.height * h)
         
         #if DEBUG
-        Swift.print("🔍 [CameraManager] 像素缓冲区尺寸: \(w)x\(h), 人脸框: \(rect)")
+        Swift.print("🔍 [CameraManager] Pixel buffer size: \(w)x\(h), face box: \(rect)")
         #endif
         
-        // 验证边界值的有效性
+        // Validate boundary values
         guard rect.width > 0 && rect.height > 0 && 
               rect.origin.x >= 0 && rect.origin.y >= 0 && 
               rect.maxX <= w && rect.maxY <= h else {
             #if DEBUG
-            Swift.print("🔍 [CameraManager] 人脸框边界无效，返回nil")
+            Swift.print("🔍 [CameraManager] Face box boundaries invalid, returning nil")
             #endif
             return nil
         }
         
-        // 从 pixelBuffer 裁出 ROI -> UIImage
+        // Crop ROI from pixelBuffer -> UIImage
         let ciImage = CIImage(cvPixelBuffer: pixelBuffer).cropped(to: rect)
         let context = CIContext()
         
         #if DEBUG
-        Swift.print("🔍 [CameraManager] 创建CI图像，extent: \(ciImage.extent)")
+        Swift.print("🔍 [CameraManager] Created CI image, extent: \(ciImage.extent)")
         #endif
         
-        // 确保 CIImage 的 extent 有效
+        // Ensure CIImage extent is valid
         guard !ciImage.extent.isEmpty else {
             #if DEBUG
-            Swift.print("🔍 [CameraManager] CI图像extent为空，返回nil")
+            Swift.print("🔍 [CameraManager] CI image extent is empty, returning nil")
             #endif
             return nil
         }
         
         guard let cgFace = context.createCGImage(ciImage, from: ciImage.extent) else {
             #if DEBUG
-            Swift.print("🔍 [CameraManager] 创建CG图像失败，返回nil")
+            Swift.print("🔍 [CameraManager] Failed to create CG image, returning nil")
             #endif
             return nil
         }
         
         #if DEBUG
-        Swift.print("🔍 [CameraManager] 成功提取人脸图像，尺寸: \(cgFace.width)x\(cgFace.height)")
+        Swift.print("🔍 [CameraManager] Successfully extracted face image, size: \(cgFace.width)x\(cgFace.height)")
         #endif
         
         return UIImage(cgImage: cgFace)
@@ -193,26 +193,26 @@ extension CameraManager: AVCaptureVideoDataOutputSampleBufferDelegate {
                        from connection: AVCaptureConnection) {
         #if DEBUG
         let timestamp = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
-        Swift.print("📹 [CameraManager] 接收到新视频帧，时间戳: \(timestamp.seconds)")
+        Swift.print("📹 [CameraManager] Received new video frame, timestamp: \(timestamp.seconds)")
         #endif
         
         DispatchQueue.main.async {
             self.latestPixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer)
             #if DEBUG
-            Swift.print("📹 [CameraManager] 视频帧已更新到主线程")
+            Swift.print("📹 [CameraManager] Video frame updated on main thread")
             #endif
         }
     }
 }
 
-// MARK: - FaceDetector —— 只负责返回人脸框数量与第一个框
+// MARK: - FaceDetector —— Only responsible for returning face box count and first box
 struct FaceDetector {
     
     private let request = VNDetectFaceRectanglesRequest()
     
     mutating func detect(in pixelBuffer: CVPixelBuffer) -> (count: Int, firstBox: CGRect?) {
         #if DEBUG
-        Swift.print("🎯 [FaceDetector] 开始人脸检测")
+        Swift.print("🎯 [FaceDetector] Starting face detection")
         #endif
         
         let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer,
@@ -222,16 +222,16 @@ struct FaceDetector {
             let faces = request.results as? [VNFaceObservation] ?? []
             
             #if DEBUG
-            Swift.print("🎯 [FaceDetector] 检测完成，人脸数量: \(faces.count)")
+            Swift.print("🎯 [FaceDetector] Detection completed, face count: \(faces.count)")
             if let firstFace = faces.first {
-                Swift.print("🎯 [FaceDetector] 第一个人脸框: \(firstFace.boundingBox), 置信度: \(firstFace.confidence)")
+                Swift.print("🎯 [FaceDetector] First face box: \(firstFace.boundingBox), confidence: \(firstFace.confidence)")
             }
             #endif
             
             return (faces.count, faces.first?.boundingBox)
         } catch {
             #if DEBUG
-            Swift.print("🎯 [FaceDetector] Vision检测错误: \(error)")
+            Swift.print("🎯 [FaceDetector] Vision detection error: \(error)")
             #endif
             return (0, nil)
         }

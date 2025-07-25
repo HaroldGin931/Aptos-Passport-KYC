@@ -22,25 +22,25 @@ enum IntegrityError: Error, LocalizedError {
     var errorDescription: String? {
         switch self {
         case .appAttestNotSupported:
-            return "App Attest 不支持此设备"
+            return "App Attest is not supported on this device"
         case .keyGenerationFailed:
-            return "密钥生成失败"
+            return "Key generation failed"
         case .attestationFailed:
-            return "设备认证失败"
+            return "Device attestation failed"
         case .assertionFailed:
-            return "断言生成失败"
+            return "Assertion generation failed"
         case .keyNotFound:
-            return "未找到密钥"
+            return "Key not found"
         case .invalidChallenge:
-            return "无效的质询数据"
+            return "Invalid challenge data"
         case .serverError(let message):
-            return "服务器错误: \(message)"
+            return "Server error: \(message)"
         case .certificateParsingFailed:
-            return "证书解析失败"
+            return "Certificate parsing failed"
         case .certificateStorageFailed:
-            return "证书存储失败"
+            return "Certificate storage failed"
         case .certificateNotFound:
-            return "未找到证书"
+            return "Certificate not found"
         }
     }
 }

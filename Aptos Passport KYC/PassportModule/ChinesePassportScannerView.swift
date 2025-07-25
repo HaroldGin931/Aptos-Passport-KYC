@@ -11,44 +11,49 @@ struct ChinesePassportScannerView: View {
     @StateObject private var passportReader = ChinesePassportReader()
     @Environment(\.dismiss) private var dismiss
     
-    // MRZ信息输入
-    @State private var passportNumber = "E12341234"
+    // MRZ information input
+    @State private var passportNumber = "E00000000"
     @State private var dateOfBirth = "900101"
-    @State private var dateOfExpiry = "300101"
+    @State private var dateOfExpiry = "251231"
     
-    // BAC计算相关
+    // BAC calculation related
     @State private var bacKeyInfo: BACKeyInfo?
     @State private var bacValidationResult: BACValidationResult?
     
     var body: some View {
         NavigationView {
             VStack(spacing: 20) {
-                // 始终显示输入界面
+                // Always show input interface
                 mrzInputView
                 
-                // 护照信息显示
+                // BAC authentication success status display
+                if passportReader.bacAuthenticated {
+                    bacSuccessView
+                }
+                
+                // Passport information display
                 if let passport = passportReader.passportData {
                     passportInfoSection(passport)
                 }
                 
                 Spacer()
                 
-                // 操作按钮
+                // Action buttons
                 actionButtons
             }
             .padding()
-            .navigationTitle("护照读取")
+            .navigationTitle("Passport Reading")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("关闭") {
+                    Button("Close") {
                         passportReader.stopReading()
                         dismiss()
                     }
                 }
             }
-            .alert("错误", isPresented: .constant(passportReader.errorMessage != nil)) {
-                Button("确定") {
+            .alert("Error", isPresented: .constant(passportReader.errorMessage != nil)) {
+                Button("OK") {
                     passportReader.errorMessage = nil
                 }
             } message: {
@@ -59,44 +64,44 @@ struct ChinesePassportScannerView: View {
         }
     }
     
-    // MARK: - MRZ信息输入界面
+    // MARK: - MRZ Information Input Interface
     private var mrzInputView: some View {
         VStack(spacing: 25) {
-            // 标题
+            // Title
             VStack(spacing: 10) {
                 Image(systemName: "doc.text.viewfinder")
                     .font(.system(size: 60))
                     .foregroundColor(.blue)
                 
-                Text("护照信息输入")
+                Text("Passport Information Input")
                     .font(.title)
                     .fontWeight(.bold)
                 
-                Text("请输入护照上的基本信息，用于计算BAC密钥")
+                Text("Please enter basic passport information for BAC key calculation")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
             }
             
-            // 输入表单
+            // Input form
             VStack(spacing: 20) {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("护照号")
+                    Text("Passport Number")
                         .font(.headline)
                         .fontWeight(.medium)
                     
-                    SecureField("例如: EA1234567", text: $passportNumber)
+                    SecureField("e.g.: EA1234567", text: $passportNumber)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .autocapitalization(.allCharacters)
                         .disableAutocorrection(true)
                 }
                 
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("出生日期 (YYMMDD)")
+                    Text("Date of Birth (YYMMDD)")
                         .font(.headline)
                         .fontWeight(.medium)
                     
-                    SecureField("例如: 900115", text: $dateOfBirth)
+                    SecureField("e.g.: 900115", text: $dateOfBirth)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .keyboardType(.numberPad)
                         .onChange(of: dateOfBirth) { oldValue, newValue in
@@ -107,11 +112,11 @@ struct ChinesePassportScannerView: View {
                 }
                 
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("到期日期 (YYMMDD)")
+                    Text("Expiry Date (YYMMDD)")
                         .font(.headline)
                         .fontWeight(.medium)
                     
-                    SecureField("例如: 300115", text: $dateOfExpiry)
+                    SecureField("e.g.: 300115", text: $dateOfExpiry)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .keyboardType(.numberPad)
                         .onChange(of: dateOfExpiry) { oldValue, newValue in
@@ -125,21 +130,21 @@ struct ChinesePassportScannerView: View {
             .background(Color(.systemGray6))
             .cornerRadius(15)
             
-            // 说明
+            // Instructions
             VStack(alignment: .leading, spacing: 8) {
-                Text("💡 信息说明:")
+                Text("💡 Information Guide:")
                     .font(.subheadline)
                     .fontWeight(.bold)
                 
-                Text("• 护照号: 护照封面上的9位字母数字组合")
-                Text("• 出生日期: 年月日格式，如1990年1月15日 = 900115")
-                Text("• 到期日期: 年月日格式，如2030年1月15日 = 300115")
-                Text("• 这些信息用于计算BAC密钥，确保护照读取安全")
+                Text("• Passport Number: 9-digit alphanumeric combination on passport cover")
+                Text("• Date of Birth: YYMMDD format, e.g., January 15, 1990 = 900115")
+                Text("• Expiry Date: YYMMDD format, e.g., January 15, 2030 = 300115")
+                Text("• This information is used to calculate BAC keys, ensuring secure passport reading")
                 
-                // 显示验证错误（如果有的话）
+                // Display validation errors (if any)
                 if let validationResult = bacValidationResult, !validationResult.isValid {
                     Divider()
-                    Text("⚠️ 输入验证错误:")
+                    Text("⚠️ Input validation errors:")
                         .font(.caption)
                         .fontWeight(.bold)
                         .foregroundColor(.red)
@@ -160,19 +165,24 @@ struct ChinesePassportScannerView: View {
     }
 
     
-    // MARK: - 操作按钮
+    // MARK: - Action Buttons
     private var actionButtons: some View {
         VStack(spacing: 12) {
             Button(action: {
-                // 首先验证并计算BAC信息
+                // First validate and calculate BAC information
                 updateBACInfo()
                 if bacValidationResult?.isValid == true {
-                    // 直接开始NFC扫描，不切换页面
+                    // Reset status
+                    passportReader.bacAuthenticated = false
+                    passportReader.passportData = nil
+                    passportReader.errorMessage = nil
+                    
+                    // Directly start NFC scanning without switching pages
                     let mrzInfo = MRZInfo(
                         documentNumber: passportNumber,
                         dateOfBirth: dateOfBirth,
                         dateOfExpiry: dateOfExpiry,
-                        checkDigits: "" // 这里可以为空，主要用于显示
+                        checkDigits: "" // Can be empty here, mainly for display
                     )
                     
                     passportReader.readPassport(with: mrzInfo)
@@ -180,7 +190,7 @@ struct ChinesePassportScannerView: View {
             }) {
                 HStack {
                     Image(systemName: "wave.3.right")
-                    Text("开始NFC扫描")
+                    Text("Start NFC Scan")
                 }
                 .frame(maxWidth: .infinity)
                 .padding()
@@ -193,7 +203,39 @@ struct ChinesePassportScannerView: View {
         }
     }
     
-    // MARK: - 辅助函数
+    // MARK: - BAC Authentication Success View
+    private var bacSuccessView: some View {
+        VStack(spacing: 15) {
+            HStack {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundColor(.green)
+                    .font(.title2)
+                
+                Text("BAC Check Passed")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.green)
+                
+                Spacer()
+                
+                ProgressView()
+                    .scaleEffect(0.8)
+            }
+            
+            Text("Reading passport data...")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+        }
+        .padding()
+        .background(Color.green.opacity(0.1))
+        .cornerRadius(15)
+        .overlay(
+            RoundedRectangle(cornerRadius: 15)
+                .stroke(Color.green, lineWidth: 1)
+        )
+    }
+    
+    // MARK: - Helper Functions
     private func isValidMRZInput() -> Bool {
         let validation = PassportBACCalculator.validateBACInputs(
             passportNumber: passportNumber,
@@ -203,16 +245,16 @@ struct ChinesePassportScannerView: View {
         return validation.isValid
     }
     
-    /// 更新BAC密钥信息
+    /// Update BAC key information
     private func updateBACInfo() {
-        // 验证输入
+        // Validate input
         bacValidationResult = PassportBACCalculator.validateBACInputs(
             passportNumber: passportNumber,
             dateOfBirth: dateOfBirth,
             dateOfExpiry: dateOfExpiry
         )
         
-        // 如果验证通过，计算BAC密钥
+        // If validation passes, calculate BAC keys
         if bacValidationResult?.isValid == true {
             bacKeyInfo = BACKeyInfo(
                 passportNumber: passportNumber,
@@ -224,51 +266,51 @@ struct ChinesePassportScannerView: View {
         }
     }
     
-    /// 获取BAC密钥摘要信息（用于调试）
+    /// Get BAC key summary information (for debugging)
     private func getBACKeySummary() -> String {
-        return bacKeyInfo?.summary ?? "BAC密钥未计算"
+        return bacKeyInfo?.summary ?? "BAC keys not calculated"
     }
     
-    /// 遮盖敏感信息显示
+    /// Mask sensitive information for display
     private func maskSensitiveInfo(_ text: String) -> String {
         guard !text.isEmpty else { return "" }
         
         if text.count <= 2 {
             return String(repeating: "●", count: text.count)
         } else if text.count <= 4 {
-            // 显示前1位和后1位，中间用圆点
+            // Show first 1 and last 1 characters, dots in between
             return String(text.prefix(1)) + String(repeating: "●", count: text.count - 2) + String(text.suffix(1))
         } else {
-            // 显示前2位和后2位，中间用圆点
+            // Show first 2 and last 2 characters, dots in between
             return String(text.prefix(2)) + String(repeating: "●", count: text.count - 4) + String(text.suffix(2))
         }
     }
     
-    // MARK: - 护照信息显示
+    // MARK: - Passport Information Display
     private func passportInfoSection(_ passport: ChinesePassportData) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundColor(.green)
-                Text("读取成功")
+                Text("Read Successfully")
                     .font(.title2)
                     .fontWeight(.bold)
                 Spacer()
             }
             
             Group {
-                InfoRow(title: "姓名", value: "\(passport.lastName) \(passport.firstName)")
-                InfoRow(title: "护照号", value: maskSensitiveInfo(passport.documentNumber))
-                InfoRow(title: "国籍", value: passport.nationality)
-                InfoRow(title: "签发国", value: passport.issuingAuthority)
-                InfoRow(title: "性别", value: passport.gender)
+                InfoRow(title: "Name", value: "\(passport.lastName) \(passport.firstName)")
+                InfoRow(title: "Passport Number", value: maskSensitiveInfo(passport.documentNumber))
+                InfoRow(title: "Nationality", value: passport.nationality)
+                InfoRow(title: "Issuing Country", value: passport.issuingAuthority)
+                InfoRow(title: "Gender", value: passport.gender)
                 
                 if let birthDate = passport.dateOfBirth {
-                    InfoRow(title: "出生日期", value: formatDate(birthDate))
+                    InfoRow(title: "Date of Birth", value: formatDate(birthDate))
                 }
                 
                 if let expiryDate = passport.dateOfExpiry {
-                    InfoRow(title: "到期日期", value: formatDate(expiryDate))
+                    InfoRow(title: "Expiry Date", value: formatDate(expiryDate))
                 }
             }
         }
@@ -281,16 +323,16 @@ struct ChinesePassportScannerView: View {
         )
     }
     
-    // MARK: - 辅助方法
+    // MARK: - Helper Methods
     private func formatDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
-        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.locale = Locale(identifier: "en_US")
         return formatter.string(from: date)
     }
 }
 
-// MARK: - 信息行组件
+// MARK: - Information Row Component
 struct InfoRow: View {
     let title: String
     let value: String

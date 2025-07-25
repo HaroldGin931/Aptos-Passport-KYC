@@ -31,48 +31,48 @@ class AppAssertService: ObservableObject {
         errorMessage = nil
         
         do {
-            print("🔄 ========== App Assert 流程开始 ==========")
-            print("📋 第二阶段：后续通信（App Assert）")
-            print("💡 前提条件: 设备已通过App Attest认证，服务器已保存公钥")
+            print("🔄 ========== App Assert Process Started ==========")
+            print("📋 Stage 2: Subsequent Communication (App Assert)")
+            print("💡 Prerequisites: Device has passed App Attest authentication, server has saved public key")
             
-            print("\n📝 步骤1: 准备敏感数据...")
-            print("� 使用Key ID: \(keyId)")
-            print("📦 敏感数据大小: \(requestData.count) bytes")
-            print("📄 敏感数据内容: \(String(data: requestData.prefix(100), encoding: .utf8) ?? "Binary data")...")
+            print("\n📝 Step 1: Prepare sensitive data...")
+            print("🔑 Using Key ID: \(keyId)")
+            print("📦 Sensitive data size: \(requestData.count) bytes")
+            print("📄 Sensitive data content: \(String(data: requestData.prefix(100), encoding: .utf8) ?? "Binary data")...")
             
-            print("\n🔒 步骤2: 对敏感数据进行哈希...")
+            print("\n🔒 Step 2: Hash sensitive data...")
             let requestDataHash = SHA256.hash(data: requestData)
             let requestDataHashData = Data(requestDataHash)
-            print("� SHA256哈希: \(requestDataHashData.base64EncodedString())")
-            print("💡 哈希确保数据完整性，防止传输过程中被篡改")
+            print("🔐 SHA256 hash: \(requestDataHashData.base64EncodedString())")
+            print("💡 Hash ensures data integrity, preventing tampering during transmission")
             
-            print("\n✍️  步骤3: 使用设备私钥对哈希进行签名...")
-            print("🔐 调用设备安全区域进行签名...")
+            print("\n✍️  Step 3: Sign hash using device private key...")
+            print("🔐 Calling device secure enclave for signing...")
             let assertion = try await DCAppAttestService.shared.generateAssertion(keyId, clientDataHash: requestDataHashData)
             
             lastAssertion = assertion
             
-            print("✅ 签名生成成功!")
-            print("📋 签名详情:")
-            print("   - 签名大小: \(assertion.count) bytes")
-            print("   - 签名方式: ECDSA (椭圆曲线数字签名)")
-            print("   - 私钥位置: 设备安全区域 (无法导出)")
-            print("   - 包含信息: 数据签名 + 计数器 + 认证数据")
+            print("✅ Signature generated successfully!")
+            print("📋 Signature details:")
+            print("   - Signature size: \(assertion.count) bytes")
+            print("   - Signature method: ECDSA (Elliptic Curve Digital Signature)")
+            print("   - Private key location: Device secure enclave (cannot be exported)")
+            print("   - Included information: Data signature + Counter + Authentication data")
             
-            print("\n🚀 步骤4: 准备发送到服务器...")
-            print("📤 完整请求包含:")
-            print("   1. 原始敏感数据")
-            print("   2. 数据签名 (assertion)")
-            print("   3. Key ID (标识使用的密钥)")
+            print("\n🚀 Step 4: Prepare to send to server...")
+            print("📤 Complete request contains:")
+            print("   1. Original sensitive data")
+            print("   2. Data signature (assertion)")
+            print("   3. Key ID (identifies the key used)")
             
-            print("\n🔍 服务器验证流程:")
-            print("   1. 根据Key ID找到对应的公钥")
-            print("   2. 对原始数据进行SHA256哈希")
-            print("   3. 使用公钥验证签名")
-            print("   4. 检查计数器防止重放攻击")
-            print("   5. 验证通过后处理敏感数据")
+            print("\n🔍 Server verification process:")
+            print("   1. Find corresponding public key based on Key ID")
+            print("   2. Perform SHA256 hash on original data")
+            print("   3. Verify signature using public key")
+            print("   4. Check counter to prevent replay attacks")
+            print("   5. Process sensitive data after successful verification")
             
-            print("🎯 ========== App Assert 流程完成 ==========\n")
+            print("🎯 ========== App Assert Process Complete ==========\n")
             
             isLoading = false
             return assertion
@@ -80,25 +80,25 @@ class AppAssertService: ObservableObject {
         } catch {
             isLoading = false
             let detailedError = "App Assert failed: \(error.localizedDescription)"
-            print("❌ App Assert 失败: \(detailedError)")
+            print("❌ App Assert failed: \(detailedError)")
             
             if let dcError = error as? DCError {
                 switch dcError.code {
                 case .featureUnsupported:
-                    errorMessage = "App Assert 不支持"
-                    print("❌ 错误原因: 设备不支持App Assert功能")
+                    errorMessage = "App Assert not supported"
+                    print("❌ Error reason: Device does not support App Assert feature")
                 case .invalidInput:
-                    errorMessage = "无效的数据输入"
-                    print("❌ 错误原因: 提供的数据格式无效")
+                    errorMessage = "Invalid data input"
+                    print("❌ Error reason: Provided data format is invalid")
                 case .invalidKey:
-                    errorMessage = "无效的密钥 - 密钥可能未经认证"
-                    print("❌ 错误原因: 使用的Key ID未经过App Attest认证")
+                    errorMessage = "Invalid key - Key may not be authenticated"
+                    print("❌ Error reason: Used Key ID has not passed App Attest authentication")
                 case .serverUnavailable:
-                    errorMessage = "Apple服务不可用"
-                    print("❌ 错误原因: Apple的App Attest服务暂时不可用")
+                    errorMessage = "Apple service unavailable"
+                    print("❌ Error reason: Apple's App Attest service is temporarily unavailable")
                 default:
-                    errorMessage = "App Assert 错误: \(dcError.localizedDescription)"
-                    print("❌ 其他错误: \(dcError.localizedDescription)")
+                    errorMessage = "App Assert error: \(dcError.localizedDescription)"
+                    print("❌ Other error: \(dcError.localizedDescription)")
                 }
             } else {
                 errorMessage = detailedError
@@ -150,23 +150,23 @@ class AppAssertService: ObservableObject {
                 "request_data_size": \(requestData.count),
                 "request_data_preview": "\(String(data: requestData.prefix(100), encoding: .utf8) ?? "Binary data")...",
                 "flow_info": {
-                    "stage": "第二阶段：后续通信（App Assert）",
-                    "purpose": "使用已认证的设备密钥对敏感数据进行签名",
-                    "prerequisite": "设备必须已通过App Attest认证，服务器已保存对应公钥"
+                    "stage": "Stage 2: Subsequent Communication (App Assert)",
+                    "purpose": "Use authenticated device key to sign sensitive data",
+                    "prerequisite": "Device must have passed App Attest authentication, server has saved corresponding public key"
                 },
                 "assertion_contains": [
-                    "敏感数据的数字签名",
-                    "计数器（防重放攻击）",
-                    "认证数据",
-                    "时间戳信息"
+                    "Digital signature of sensitive data",
+                    "Counter (prevent replay attacks)",
+                    "Authentication data",
+                    "Timestamp information"
                 ],
                 "server_verification_process": [
-                    "1. 根据key_id查找对应的公钥",
-                    "2. 对request_data进行SHA256哈希",
-                    "3. 使用公钥验证assertion签名",
-                    "4. 检查计数器是否递增",
-                    "5. 验证时间戳有效性",
-                    "6. 确认数据完整性后处理请求"
+                    "1. Find corresponding public key based on key_id",
+                    "2. Perform SHA256 hash on request_data",
+                    "3. Verify assertion signature using public key",
+                    "4. Check if counter is incremented",
+                    "5. Verify timestamp validity",
+                    "6. Process request after confirming data integrity"
                 ],
                 "security_benefits": [
                     "数据完整性：确保传输数据未被篡改",

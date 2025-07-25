@@ -43,11 +43,11 @@ final class FaceComparisonViewModel: ObservableObject {
     
     @Published var distance: Float = .greatestFiniteMagnitude
     @Published var comparisonResult: ComparisonResult = .waiting
-    @Published var statusMessage = "请将脸部对准相机"
+    @Published var statusMessage = "Please align your face with the camera"
     @Published var shouldDismiss = false
     @Published var finalResult: FinalResult = .none
     
-    // 处理状态标记
+    // Processing status flag
     @Published private var isProcessing = false
     
     var isComparing: Bool {
@@ -55,28 +55,28 @@ final class FaceComparisonViewModel: ObservableObject {
         set { 
             #if DEBUG
             if newValue != isProcessingInternal {
-                print("🔄 [isComparing] 状态改变: \(isProcessingInternal) -> \(newValue)")
+                print("🔄 [isComparing] Status changed: \(isProcessingInternal) -> \(newValue)")
             }
             #endif
             isProcessingInternal = newValue 
         }
     }
     
-    // 内部状态
+    // Internal state
     private var isProcessingInternal = false
     private var successCounter = 0
     private var totalDetections = 0
     
-    // 图像处理
+    // Image processing
     private var _referenceImage: UIImage?
     private var referenceFeaturePrint: VNFeaturePrintObservation?
     
-    // 公共访问器
+    // Public accessor
     var referenceImage: UIImage? {
         return _referenceImage
     }
     
-    // 常量
+    // Constants
     private let maxDetections = 100
     private let successThreshold = 20
     private let similarityThreshold: Float = 0.69
@@ -84,26 +84,26 @@ final class FaceComparisonViewModel: ObservableObject {
     init(referenceImage: UIImage, algorithmName: String? = nil) {
         self._referenceImage = referenceImage
         #if DEBUG
-        print("🚀 [FaceComparisonViewModel] 初始化")
+        print("🚀 [FaceComparisonViewModel] Initializing")
         #endif
         loadReferenceImage()
     }
     
-    // MARK: - 图像加载
+    // MARK: - Image Loading
     
     private func loadReferenceImage() {
         #if DEBUG
-        print("📸 [loadReferenceImage] 开始加载参考图像")
+        print("📸 [loadReferenceImage] Starting to load reference image")
         #endif
         
         guard let image = _referenceImage else {
             #if DEBUG
-            print("❌ [loadReferenceImage] 无法加载参考图像")
+            print("❌ [loadReferenceImage] Unable to load reference image")
             #endif
             return
         }
         
-        // 异步提取参考图像的特征
+        // Asynchronously extract reference image features
         Task {
             await extractReferenceFeatures()
         }
@@ -115,24 +115,24 @@ final class FaceComparisonViewModel: ObservableObject {
         do {
             referenceFeaturePrint = try await extractFeaturePrint(from: image)
             #if DEBUG
-            print("✅ [extractReferenceFeatures] 参考图像特征提取成功")
+            print("✅ [extractReferenceFeatures] Reference image feature extraction successful")
             #endif
         } catch {
             #if DEBUG
-            print("❌ [extractReferenceFeatures] 参考图像特征提取失败: \(error)")
+            print("❌ [extractReferenceFeatures] Reference image feature extraction failed: \(error)")
             #endif
         }
     }
     
-    // MARK: - 人脸检测与处理
+    // MARK: - Face Detection and Processing
     
-    /// 处理摄像头图像
+    /// Process camera image
     func processFaceImage(_ image: UIImage) {
-        // 防止重复处理
+        // Prevent duplicate processing
         guard !isProcessingInternal else { return }
         
         #if DEBUG
-        print("🔄 [processFaceImage] 开始处理图像")
+        print("🔄 [processFaceImage] Starting image processing")
         #endif
         
         Task {
@@ -157,38 +157,38 @@ final class FaceComparisonViewModel: ObservableObject {
             
         } catch {
             #if DEBUG
-            print("❌ [processImage] 处理失败: \(error)")
+            print("❌ [processImage] Processing failed: \(error)")
             #endif
             noFaceDetected()
         }
     }
     
-    /// 特征提取
+    /// Feature extraction
     private func extractFeaturePrint(from image: UIImage) async throws -> VNFeaturePrintObservation? {
         return try await withCheckedThrowingContinuation { continuation in
             guard let ciImage = CIImage(image: image) else {
-                continuation.resume(throwing: NSError(domain: "ImageProcessing", code: 1, userInfo: [NSLocalizedDescriptionKey: "无法创建CIImage"]))
+                continuation.resume(throwing: NSError(domain: "ImageProcessing", code: 1, userInfo: [NSLocalizedDescriptionKey: "Unable to create CIImage"]))
                 return
             }
             
-            // 首先进行人脸检测
+            // First perform face detection
             let faceRequest = VNDetectFaceRectanglesRequest { request, error in
                 if let error = error {
                     continuation.resume(throwing: error)
                     return
                 }
                 
-                // 处理检测到的人脸
+                // Process detected faces
                 let faces = request.results as? [VNFaceObservation] ?? []
                 
                 var processedImage = ciImage
                 
-                // 如果检测到人脸，裁剪人脸区域
+                // If face is detected, crop face region
                 if let face = faces.first {
                     let boundingBox = face.boundingBox
                     let imageSize = ciImage.extent.size
                     
-                    // 转换Vision坐标系到图像坐标系
+                    // Convert Vision coordinate system to image coordinate system
                     let faceRect = CGRect(
                         x: boundingBox.origin.x * imageSize.width,
                         y: (1 - boundingBox.origin.y - boundingBox.height) * imageSize.height,
@@ -196,7 +196,7 @@ final class FaceComparisonViewModel: ObservableObject {
                         height: boundingBox.height * imageSize.height
                     )
                     
-                    // 扩展人脸区域边界，包含更多上下文
+                    // Expand face region boundaries to include more context
                     let expandedRect = faceRect.insetBy(dx: -faceRect.width * 0.2, dy: -faceRect.height * 0.2)
                     let clampedRect = expandedRect.intersection(ciImage.extent)
                     
@@ -204,12 +204,12 @@ final class FaceComparisonViewModel: ObservableObject {
                         processedImage = ciImage.cropped(to: clampedRect)
                         
                         #if DEBUG
-                        print("✅ [extractFeaturePrint] 成功裁剪人脸区域: \(clampedRect)")
+                        print("✅ [extractFeaturePrint] Successfully cropped face region: \(clampedRect)")
                         #endif
                     }
                 }
                 
-                // 使用处理后的图像进行特征提取
+                // Use processed image for feature extraction
                 let featurePrintRequest = VNGenerateImageFeaturePrintRequest { request, error in
                     if let error = error {
                         continuation.resume(throwing: error)
@@ -244,11 +244,11 @@ final class FaceComparisonViewModel: ObservableObject {
         }
     }
     
-    /// 比较特征
+    /// Compare features
     private func compareFeatures(_ currentFeaturePrint: VNFeaturePrintObservation) async {
         guard let referenceFeaturePrint = referenceFeaturePrint else {
             #if DEBUG
-            print("⚠️ [compareFeatures] 参考特征不存在")
+            print("⚠️ [compareFeatures] Reference features do not exist")
             #endif
             noFaceDetected()
             return
@@ -259,7 +259,7 @@ final class FaceComparisonViewModel: ObservableObject {
             try referenceFeaturePrint.computeDistance(&distanceValue, to: currentFeaturePrint)
             
             #if DEBUG
-            print("📊 [compareFeatures] 计算距离: \(distanceValue)")
+            print("📊 [compareFeatures] Calculated distance: \(distanceValue)")
             #endif
             
             totalDetections += 1
@@ -268,21 +268,21 @@ final class FaceComparisonViewModel: ObservableObject {
             if distanceValue <= similarityThreshold {
                 successCounter += 1
                 comparisonResult = .match
-                statusMessage = String(format: "匹配成功! 距离: %.4f (成功: %d/%d)", distanceValue, successCounter, totalDetections)
+                statusMessage = String(format: "Match successful! Distance: %.4f (Success: %d/%d)", distanceValue, successCounter, totalDetections)
                 
                 #if DEBUG
-                print("✅ [compareFeatures] 匹配成功! 距离: \(distanceValue)")
+                print("✅ [compareFeatures] Match successful! Distance: \(distanceValue)")
                 #endif
             } else {
-                // 如果距离超过1，减少successCounter
+                // If distance exceeds 1, decrease successCounter
                 if distanceValue > 1.0 {
                     successCounter -= 1
                 }
                 comparisonResult = .noMatch
-                statusMessage = String(format: "不匹配。距离: %.4f (成功: %d/%d)", distanceValue, successCounter, totalDetections)
+                statusMessage = String(format: "No match. Distance: %.4f (Success: %d/%d)", distanceValue, successCounter, totalDetections)
                 
                 #if DEBUG
-                print("❌ [compareFeatures] 不匹配。距离: \(distanceValue)")
+                print("❌ [compareFeatures] No match. Distance: \(distanceValue)")
                 #endif
             }
             
@@ -290,63 +290,63 @@ final class FaceComparisonViewModel: ObservableObject {
             
         } catch {
             #if DEBUG
-            print("❌ [compareFeatures] 距离计算失败: \(error)")
+            print("❌ [compareFeatures] Distance calculation failed: \(error)")
             #endif
             noFaceDetected()
         }
     }
     
-    /// 当没有检测到人脸时调用
+    /// Called when no face is detected
     func noFaceDetected() {
         guard !isProcessingInternal else { return }
         
         #if DEBUG
-        print("👤 [noFaceDetected] 未检测到人脸")
+        print("👤 [noFaceDetected] No face detected")
         #endif
         
         totalDetections += 1
         
         distance = .greatestFiniteMagnitude
         comparisonResult = .waiting
-        statusMessage = String(format: "未检测到人脸 (计数: %d/%d)", successCounter, totalDetections)
+        statusMessage = String(format: "No face detected (Count: %d/%d)", successCounter, totalDetections)
         
-        // 检查是否达到最大检测次数
+        // Check if maximum detection limit is reached
         checkEndConditions()
     }
     
-    /// 检查结束条件
+    /// Check end conditions
     private func checkEndConditions() {
         #if DEBUG
-        print("🔍 [checkEndConditions] 检查结束条件 - 成功: \(successCounter)/\(successThreshold), 总数: \(totalDetections)/\(maxDetections)")
+        print("🔍 [checkEndConditions] Checking end conditions - Success: \(successCounter)/\(successThreshold), Total: \(totalDetections)/\(maxDetections)")
         #endif
         
-        // 如果successCounter达到20，立即成功
+        // If successCounter reaches 20, immediately succeed
         if successCounter >= successThreshold {
             finalResult = .success
-            statusMessage = String(format: "验证成功! 匹配次数: %d/%d", successCounter, totalDetections)
+            statusMessage = String(format: "Verification successful! Match count: %d/%d", successCounter, totalDetections)
             
             #if DEBUG
-            print("🎉 [checkEndConditions] 立即验证成功!")
+            print("🎉 [checkEndConditions] Immediate verification success!")
             #endif
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                 self.shouldDismiss = true
             }
         } else if totalDetections >= maxDetections {
-            // 当全部检测执行完时，只要successCounter大于10就判定为成功
+            // When all detections are complete, consider success if successCounter > 10
             if successCounter > 10 {
                 finalResult = .success
-                statusMessage = String(format: "验证成功! 匹配次数: %d/%d", successCounter, totalDetections)
+                statusMessage = String(format: "Verification successful! Match count: %d/%d", successCounter, totalDetections)
                 
                 #if DEBUG
-                print("🎉 [checkEndConditions] 检测完成后验证成功!")
+                print("🎉 [checkEndConditions] Verification successful after detection completion!")
                 #endif
             } else {
                 finalResult = .failure
-                statusMessage = String(format: "验证失败。匹配次数: %d/%d", successCounter, totalDetections)
+                statusMessage = String(format: "Verification failed. Match count: %d/%d", successCounter, totalDetections)
                 
                 #if DEBUG
-                print("💔 [checkEndConditions] 验证失败")
+                print("💔 [checkEndConditions] Verification failed")
                 #endif
             }
             
@@ -356,10 +356,10 @@ final class FaceComparisonViewModel: ObservableObject {
         }
     }
     
-    /// 重置状态
+    /// Reset state
     func reset() {
         #if DEBUG
-        print("🔄 [reset] 重置状态")
+        print("🔄 [reset] Reset state")
         #endif
         
         isProcessingInternal = false
@@ -367,7 +367,7 @@ final class FaceComparisonViewModel: ObservableObject {
         totalDetections = 0
         distance = .greatestFiniteMagnitude
         comparisonResult = .waiting
-        statusMessage = "请将脸部对准相机"
+        statusMessage = "Please align your face with the camera"
         shouldDismiss = false
         finalResult = .none
     }

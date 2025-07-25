@@ -9,7 +9,7 @@ import Foundation
 import Combine
 import DeviceCheck
 
-/// 认证状态管理器 - 检查设备Secure Enclave中的密钥状态
+/// Authentication state manager - Check device Secure Enclave key status
 @MainActor
 class AuthenticationStateManager: ObservableObject {
     static let shared = AuthenticationStateManager()
@@ -22,7 +22,7 @@ class AuthenticationStateManager: ObservableObject {
     private let keyIdKey = "aptos_passport_kyc_last_key_id"
     
     private init() {
-        // 延迟检查，避免初始化时的循环依赖
+        // Delayed check to avoid circular dependencies during initialization
         Task {
             await checkAuthenticationStateAsync()
         }
@@ -30,101 +30,101 @@ class AuthenticationStateManager: ObservableObject {
     
     // MARK: - Public Methods
     
-    /// 记录新的认证密钥ID
+    /// Record new authentication key ID
     func recordAuthentication(keyId: String) {
         lastKeyId = keyId
         isAuthenticated = true
         keyCheckDate = Date()
         
-        // 只保存密钥ID，用于后续检查
+        // Only save key ID for subsequent checking
         userDefaults.set(keyId, forKey: keyIdKey)
         
-        print("✅ 认证状态已记录")
+        print("✅ Authentication status recorded")
         print("   - Key ID: \(keyId)")
-        print("   - 记录时间: \(Date())")
+        print("   - Recording time: \(Date())")
     }
     
-    /// 异步检查认证状态
+    /// Asynchronously check authentication status
     func checkAuthenticationStateAsync() async {
         await MainActor.run {
-            print("🔍 开始检查设备认证状态...")
+            print("🔍 Starting device authentication status check...")
         }
         
-        // 检查是否支持App Attest
+        // Check if App Attest is supported
         guard DCAppAttestService.shared.isSupported else {
             await MainActor.run {
-                print("❌ 设备不支持App Attest")
+                print("❌ Device does not support App Attest")
                 isAuthenticated = false
                 lastKeyId = nil
             }
             return
         }
         
-        // 获取上次保存的密钥ID
+        // Get previously saved key ID
         let savedKeyId = userDefaults.string(forKey: keyIdKey)
         
         await MainActor.run {
             if let keyId = savedKeyId {
-                print("📱 找到已保存的密钥ID: \(keyId)")
+                print("📱 Found saved key ID: \(keyId)")
                 lastKeyId = keyId
                 isAuthenticated = true
                 keyCheckDate = Date()
                 
-                // 同步更新AppAttestService的状态
+                // Synchronously update AppAttestService status
                 AppAttestService.shared.lastKeyId = keyId
-                // 注意：这里我们没有attestation数据，但有keyId就足够判断已认证状态
+                // Note: We don't have attestation data here, but having keyId is sufficient to determine authenticated status
                 
-                print("✅ 认证状态检查完成: 已认证")
+                print("✅ Authentication status check completed: Authenticated")
                 print("   - Key ID: \(keyId)")
-                print("   - 检查时间: \(Date())")
-                print("   - AppAttestService状态已同步")
+                print("   - Check time: \(Date())")
+                print("   - AppAttestService status synchronized")
             } else {
-                print("📱 未找到已保存的密钥ID")
+                print("📱 No saved key ID found")
                 isAuthenticated = false
                 lastKeyId = nil
-                print("✅ 认证状态检查完成: 未认证")
+                print("✅ Authentication status check completed: Not authenticated")
             }
         }
     }
     
-    /// 清除认证状态
+    /// Clear authentication status
     func clearAuthenticationState() {
         userDefaults.removeObject(forKey: keyIdKey)
         lastKeyId = nil
         isAuthenticated = false
         keyCheckDate = nil
         
-        // 同步清除AppAttestService的状态
+        // Synchronously clear AppAttestService status
         AppAttestService.shared.lastKeyId = nil
         AppAttestService.shared.lastAttestation = nil
         
-        print("🧹 认证状态已清除")
-        print("   - UserDefaults中的密钥ID已移除")
-        print("   - AppAttestService状态已清除")
+        print("🧹 Authentication status cleared")
+        print("   - Key ID removed from UserDefaults")
+        print("   - AppAttestService status cleared")
     }
     
-    /// 强制重新检查认证状态
+    /// Force re-check authentication status
     func refreshAuthenticationState() {
         Task {
             await checkAuthenticationStateAsync()
         }
     }
     
-    /// 获取认证状态摘要信息
+    /// Get authentication status summary information
     func getAuthenticationSummary() -> String {
         guard isAuthenticated, let keyId = lastKeyId else {
-            return "未认证"
+            return "Not authenticated"
         }
         
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         formatter.timeStyle = .short
         
-        let checkDateString = keyCheckDate.map { formatter.string(from: $0) } ?? "未知"
+        let checkDateString = keyCheckDate.map { formatter.string(from: $0) } ?? "Unknown"
         
         return """
-        认证状态: 已认证
-        检查时间: \(checkDateString)
+        Authentication status: Authenticated
+        Check time: \(checkDateString)
         Key ID: \(keyId.prefix(8))...
         """
     }

@@ -14,10 +14,10 @@ class ParserDataManager: ObservableObject {
     @Published var certificateInfo: AttestationInfo?
     
     func setAssertionInfo(_ info: AssertionInfo) {
-        print("📦 ParserDataManager: 设置断言信息")
+        print("📦 ParserDataManager: Setting assertion information")
         print("   - Key ID: \(info.keyId)")
         assertionInfo = info
-        print("   - 设置完成, assertionInfo != nil: \(assertionInfo != nil)")
+        print("   - Setting complete, assertionInfo != nil: \(assertionInfo != nil)")
     }
     
     func clearAssertionInfo() {
@@ -25,10 +25,10 @@ class ParserDataManager: ObservableObject {
     }
     
     func clearResults() {
-        print("🧹 ParserDataManager: 清除所有解析结果")
+        print("🧹 ParserDataManager: Clearing all parsing results")
         assertionInfo = nil
         certificateInfo = nil
-        print("✅ ParserDataManager: 清除完成")
+        print("✅ ParserDataManager: Clearing complete")
     }
 }
 
@@ -43,10 +43,10 @@ struct IntegrityView: View {
     @State private var alertMessage = ""
     @State private var showSaveDialog = false
     @State private var certificateToSave = ""
-    @State private var testRequestData = "这是一个敏感数据请求的测试"
+    @State private var testRequestData = "This is a test for sensitive data request"
     @State private var showCertificateParser = false
     @State private var showAssertionParser = false
-    @State private var isAttestationCompleted = false // 新增：跟踪认证完成状态
+    @State private var isAttestationCompleted = false // New: Track authentication completion status
     
     var body: some View {
         NavigationView {
@@ -63,30 +63,30 @@ struct IntegrityView: View {
                         assertSection
                     }
                     
-                    // Save Section - 只在认证未完成且有证书时显示
+                    // Save Section - Only show if authentication is not completed and certificate exists
                     if attestService.lastAttestation != nil && !isAttestationCompleted {
                         saveSection
                     }
                 }
                 .padding()
             }
-            .navigationTitle("完整性验证")
+            .navigationTitle("Integrity Verification")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("完成") {
+                    Button("Done") {
                         dismiss()
                     }
                 }
             }
         }
         .onAppear {
-            // 每次打开IntegrityView时刷新认证状态
-            print("🔄 IntegrityView onAppear: 刷新认证状态")
+            // Refresh authentication status every time IntegrityView opens
+            print("🔄 IntegrityView onAppear: Refreshing authentication status")
             authStateManager.refreshAuthenticationState()
         }
-        .alert("消息", isPresented: $showAlert) {
-            Button("确定") { }
+        .alert("Message", isPresented: $showAlert) {
+            Button("OK") { }
         } message: {
             Text(alertMessage)
         }
@@ -94,7 +94,7 @@ struct IntegrityView: View {
             if let info = parserManager.certificateInfo {
                 CertificateParserView(info: info)
             } else {
-                Text("证书数据未找到")
+                Text("Certificate data not found")
             }
         }
         .sheet(isPresented: $showAssertionParser) {
@@ -102,18 +102,18 @@ struct IntegrityView: View {
                 AssertionParserView(info: info)
             } else {
                 VStack(spacing: 16) {
-                    Text("⚠️ 断言数据未找到")
+                    Text("⚠️ Assertion data not found")
                         .font(.headline)
                         .foregroundColor(.red)
                     
-                    Text("状态调试信息:")
+                    Text("Status debug information:")
                         .font(.subheadline)
                     
-                    Text("parserManager.assertionInfo: \(parserManager.assertionInfo == nil ? "nil" : "存在")")
+                    Text("parserManager.assertionInfo: \(parserManager.assertionInfo == nil ? "nil" : "exists")")
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
-                    Button("关闭") {
+                    Button("Close") {
                         showAssertionParser = false
                     }
                     .buttonStyle(.borderedProminent)
@@ -129,10 +129,10 @@ struct IntegrityView: View {
         ) { result in
             switch result {
             case .success(let url):
-                alertMessage = "证书已保存到: \(url.path)"
+                alertMessage = "Certificate saved to: \(url.path)"
                 showAlert = true
             case .failure(let error):
-                alertMessage = "保存失败: \(error.localizedDescription)"
+                alertMessage = "Save failed: \(error.localizedDescription)"
                 showAlert = true
             }
         }
@@ -147,11 +147,11 @@ struct IntegrityView: View {
                 .font(.system(size: 40))
                 .foregroundColor(attestService.lastAttestation != nil ? .green : .orange)
             
-            Text("POC 演示 - App Attest & Assert")
+            Text("POC Demo - App Attest & Assert")
                 .font(.title3)
                 .fontWeight(.medium)
             
-            Text("验证应用和设备的完整性")
+            Text("Verify application and device integrity")
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
@@ -167,27 +167,27 @@ struct IntegrityView: View {
             HStack {
                 Image(systemName: "key.fill")
                     .foregroundColor(.blue)
-                Text("设备认证")
+                Text("Device Authentication")
                     .font(.headline)
                 Spacer()
-                // 优先检查authStateManager的状态，然后检查attestService
+                // Check authStateManager status first, then check attestService
                 statusIndicator(isActive: authStateManager.isAuthenticated || attestService.lastAttestation != nil)
             }
             
-            Text("生成设备密钥并获取 Apple 认证证书")
+            Text("Generate device key and obtain Apple authentication certificate")
                 .font(.caption)
                 .foregroundColor(.secondary)
             
             if attestService.isLoading {
-                ProgressView("正在验证...")
+                ProgressView("Verifying...")
                     .frame(maxWidth: .infinity)
             } else if authStateManager.isAuthenticated || isAttestationCompleted {
-                // 已认证状态：要么从保存状态恢复，要么刚完成认证
+                // Authenticated state: Either restored from saved state or just completed authentication
                 VStack(spacing: 12) {
                     HStack {
                         Image(systemName: "checkmark.circle.fill")
                             .foregroundColor(.green)
-                        Text("设备认证已完成")
+                        Text("Device authentication completed")
                             .font(.headline)
                             .foregroundColor(.green)
                         Spacer()
@@ -195,7 +195,7 @@ struct IntegrityView: View {
                     
                     if let keyId = attestService.lastKeyId {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("认证信息:")
+                            Text("Authentication information:")
                                 .font(.subheadline)
                                 .fontWeight(.semibold)
                             
@@ -209,42 +209,42 @@ struct IntegrityView: View {
                             
                             if let attestation = attestService.lastAttestation {
                                 HStack {
-                                    Text("证书大小:")
+                                    Text("Certificate size:")
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                     Text("\(attestation.count) bytes")
                                         .font(.caption)
                                 }
                                 
-                                Button("查看证书详情") {
+                                Button("View Certificate Details") {
                                     parseCertificate(attestation: attestation)
                                 }
                                 .buttonStyle(.bordered)
                                 .frame(maxWidth: .infinity)
                             } else {
                                 HStack {
-                                    Text("状态:")
+                                    Text("Status:")
                                         .font(.caption)
                                         .foregroundColor(.secondary)
-                                    Text("从已保存状态恢复")
+                                    Text("Restored from saved state")
                                         .font(.caption)
                                         .foregroundColor(.blue)
                                 }
                                 
-                                Text("💡 证书详情需要重新生成后查看")
+                                Text("💡 Certificate details need to be regenerated for viewing")
                                     .font(.caption2)
                                     .foregroundColor(.secondary)
                                     .multilineTextAlignment(.center)
                             }
                             
-                            Button("重新认证") {
+                            Button("Re-authenticate") {
                                 resetAttestation()
                             }
                             .buttonStyle(.bordered)
                             .foregroundColor(.orange)
                             .frame(maxWidth: .infinity)
                             
-                            Button("清除认证状态") {
+                            Button("Clear Authentication State") {
                                 clearAuthenticationState()
                             }
                             .buttonStyle(.bordered)
@@ -257,8 +257,8 @@ struct IntegrityView: View {
                     }
                 }
             } else {
-                // 只有在真正未认证时才显示"开始设备认证"按钮
-                Button("开始设备认证") {
+                // Only show "Start Device Authentication" button when truly not authenticated
+                Button("Start Device Authentication") {
                     Task {
                         await performAttestation()
                     }
@@ -269,7 +269,7 @@ struct IntegrityView: View {
             }
             
             if !attestService.checkAppAttestSupport() {
-                Text("⚠️ 当前设备不支持 App Attest")
+                Text("⚠️ Current device does not support App Attest")
                     .font(.caption)
                     .foregroundColor(.orange)
             }
@@ -292,32 +292,32 @@ struct IntegrityView: View {
             HStack {
                 Image(systemName: "checkmark.shield.fill")
                     .foregroundColor(.green)
-                Text("敏感数据验证")
+                Text("Sensitive Data Verification")
                     .font(.headline)
                 Spacer()
                 statusIndicator(isActive: assertService.lastAssertion != nil)
             }
             
-            Text("使用已认证的密钥对敏感数据请求进行验证")
+            Text("Use authenticated key to verify sensitive data requests")
                 .font(.caption)
                 .foregroundColor(.secondary)
             
             // Test request input
             VStack(alignment: .leading, spacing: 8) {
-                Text("测试请求数据:")
+                Text("Test request data:")
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
-                TextField("输入测试数据", text: $testRequestData)
+                TextField("Enter test data", text: $testRequestData)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .font(.caption)
             }
             
             if assertService.isLoading {
-                ProgressView("正在生成断言...")
+                ProgressView("Generating assertion...")
                     .frame(maxWidth: .infinity)
             } else {
-                Button("生成敏感数据断言") {
+                Button("Generate Sensitive Data Assertion") {
                     Task {
                         await performAssertion()
                     }
@@ -335,18 +335,18 @@ struct IntegrityView: View {
             
             if let assertion = assertService.lastAssertion {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("断言大小: \(assertion.count) bytes")
+                    Text("Assertion size: \(assertion.count) bytes")
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
                     HStack(spacing: 12) {
-                        Button("保存断言到文件") {
+                        Button("Save Assertion to File") {
                             saveAssertionToFile()
                         }
                         .buttonStyle(.bordered)
                         .frame(maxWidth: .infinity)
                         
-                        Button("解析断言") {
+                        Button("Parse Assertion") {
                             parseAssertion()
                         }
                         .buttonStyle(.bordered)
@@ -367,12 +367,12 @@ struct IntegrityView: View {
             HStack {
                 Image(systemName: "doc.text.fill")
                     .foregroundColor(.green)
-                Text("Attest 证书")
+                Text("Attest Certificate")
                     .font(.headline)
                 Spacer()
             }
             
-            Text("将获取的认证证书保存到您选择的位置")
+            Text("Save the obtained authentication certificate to your chosen location")
                 .font(.caption)
                 .foregroundColor(.secondary)
             
@@ -383,19 +383,19 @@ struct IntegrityView: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
-                    Text("证书大小: \(attestation.count) bytes")
+                    Text("Certificate size: \(attestation.count) bytes")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
                 
                 HStack(spacing: 12) {
-                    Button("保存证书到文件") {
+                    Button("Save Certificate to File") {
                         saveCertificateToFile(attestation: attestation, keyId: keyId)
                     }
                     .buttonStyle(.bordered)
                     .frame(maxWidth: .infinity)
                     
-                    Button("解析证书") {
+                    Button("Parse Certificate") {
                         parseCertificate(attestation: attestation)
                     }
                     .buttonStyle(.bordered)
@@ -421,28 +421,28 @@ struct IntegrityView: View {
     private func performAttestation() async {
         do {
             let result = try await attestService.performAttestation()
-            isAttestationCompleted = true // 设置认证完成状态
-            alertMessage = "设备认证成功！\nKey ID: \(result.keyId.prefix(16))...\n证书大小: \(result.attestation.count) bytes"
+            isAttestationCompleted = true // Set authentication completion status
+            alertMessage = "Device authentication successful！\nKey ID: \(result.keyId.prefix(16))...\nCertificate size: \(result.attestation.count) bytes"
             showAlert = true
         } catch {
-            alertMessage = "认证失败: \(error.localizedDescription)"
+            alertMessage = "Authentication failed: \(error.localizedDescription)"
             showAlert = true
         }
     }
     
     private func performAssertion() async {
         guard let keyId = attestService.lastKeyId else {
-            alertMessage = "请先完成设备认证"
+            alertMessage = "Please complete device authentication first"
             showAlert = true
             return
         }
         
         do {
             let assertion = try await assertService.assertStringRequest(keyId: keyId, requestString: testRequestData)
-            alertMessage = "敏感数据断言生成成功！\n断言大小: \(assertion.count) bytes"
+            alertMessage = "Sensitive data assertion generated successfully！\nAssertion size: \(assertion.count) bytes"
             showAlert = true
         } catch {
-            alertMessage = "断言生成失败: \(error.localizedDescription)"
+            alertMessage = "Assertion generation failed: \(error.localizedDescription)"
             showAlert = true
         }
     }
@@ -455,7 +455,7 @@ struct IntegrityView: View {
     private func saveAssertionToFile() {
         guard let keyId = attestService.lastKeyId,
               let assertion = assertService.lastAssertion else {
-            alertMessage = "没有可保存的断言数据"
+            alertMessage = "No assertion data to save"
             showAlert = true
             return
         }
@@ -466,95 +466,95 @@ struct IntegrityView: View {
     }
     
     private func resetAttestation() {
-        print("🔄 IntegrityView: 重置认证状态...")
+        print("🔄 IntegrityView: Resetting authentication status...")
         isAttestationCompleted = false
         parserManager.clearResults()
         
-        // 清除服务中的数据
+        // Clear data in services
         attestService.errorMessage = nil
         attestService.lastAttestation = nil
         attestService.lastKeyId = nil
         
-        // 清除断言服务数据
+        // Clear assertion service data
         assertService.errorMessage = nil
         assertService.lastAssertion = nil
         
-        print("✅ IntegrityView: 认证状态已重置")
+        print("✅ IntegrityView: Authentication status has been reset")
     }
     
     private func clearAuthenticationState() {
-        print("🔄 IntegrityView: 清除认证状态...")
+        print("🔄 IntegrityView: Clearing authentication status...")
         
-        // 清除认证状态管理器的状态
+        // Clear authentication state manager status
         authStateManager.clearAuthenticationState()
         
-        // 同时重置当前会话的认证状态
+        // Also reset current session authentication status
         resetAttestation()
         
-        // 显示确认消息
-        alertMessage = "认证状态已清除，需要重新进行设备认证。"
+        // Show confirmation message
+        alertMessage = "Authentication status has been cleared, device authentication needs to be performed again."
         showAlert = true
         
-        print("✅ IntegrityView: 认证状态已清除")
+        print("✅ IntegrityView: Authentication status has been cleared")
     }
     
     private func parseCertificate(attestation: Data) {
-        print("🔄 IntegrityView: 开始解析证书...")
-        print("   - 证书数据大小: \(attestation.count) bytes")
-        print("💡 将从证书本身提取Key ID, 公钥, Bundle ID等信息")
+        print("🔄 IntegrityView: Starting certificate parsing...")
+        print("   - Certificate data size: \(attestation.count) bytes")
+        print("💡 Will extract Key ID, public key, Bundle ID and other information from certificate itself")
         
-        // 调用更新后的解析器，它会从证书本身提取所有信息
+        // Call updated parser, which will extract all information from certificate itself
         let result = AttestationParser.parseCertificate(attestation: attestation)
         parserManager.certificateInfo = result
-        print("   - 解析完成，提取的Key ID: \(result.keyId)")
-        print("   - 解析完成，提取的Bundle ID: \(result.bundleId)")
+        print("   - Parsing complete, extracted Key ID: \(result.keyId)")
+        print("   - Parsing complete, extracted Bundle ID: \(result.bundleId)")
         showCertificateParser = true
     }
     
     private func parseAssertion() {
-        print("🔄 IntegrityView: 开始解析断言...")
+        print("🔄 IntegrityView: Starting assertion parsing...")
         
         guard let keyId = attestService.lastKeyId,
               let assertion = assertService.lastAssertion else {
-            print("❌ IntegrityView: 缺少断言数据")
-            print("   - keyId 存在: \(attestService.lastKeyId != nil)")
-            print("   - assertion 存在: \(assertService.lastAssertion != nil)")
-            alertMessage = "没有可解析的断言数据"
+            print("❌ IntegrityView: Missing assertion data")
+            print("   - keyId exists: \(attestService.lastKeyId != nil)")
+            print("   - assertion exists: \(assertService.lastAssertion != nil)")
+            alertMessage = "No assertion data to parse"
             showAlert = true
             return
         }
         
         let requestData = testRequestData.data(using: .utf8) ?? Data()
-        print("✅ IntegrityView: 参数准备完成")
+        print("✅ IntegrityView: Parameters preparation complete")
         print("   - Key ID: \(keyId)")
-        print("   - 断言大小: \(assertion.count) bytes")
-        print("   - 请求数据: \(testRequestData)")
-        print("   - 请求数据大小: \(requestData.count) bytes")
+        print("   - Assertion size: \(assertion.count) bytes")
+        print("   - Request data: \(testRequestData)")
+        print("   - Request data size: \(requestData.count) bytes")
         
         let result = AttestationParser.parseAssertion(assertion: assertion, keyId: keyId, originalData: requestData)
-        print("🔍 IntegrityView: 解析结果验证")
-        print("   - 结果对象创建: 成功")
-        print("   - Key ID设置: \(result.keyId)")
-        print("   - 签名验证状态: \(result.signatureVerification)")
-        print("   - 断言大小: \(result.assertionSize)")
+        print("🔍 IntegrityView: Parsing result verification")
+        print("   - Result object creation: Success")
+        print("   - Key ID setting: \(result.keyId)")
+        print("   - Signature verification status: \(result.signatureVerification)")
+        print("   - Assertion size: \(result.assertionSize)")
         
-        // 确保在主线程上更新UI状态
+        // Ensure UI state is updated on main thread
         DispatchQueue.main.async {
-            // 使用 StateObject 管理器设置数据
+            // Use StateObject manager to set data
             self.parserManager.setAssertionInfo(result)
-            print("   - 状态变量设置: 完成 (主线程)")
+            print("   - Status variable setting: Complete (main thread)")
             print("   - parserManager.assertionInfo != nil: \(self.parserManager.assertionInfo != nil)")
             print("   - parserManager.assertionInfo.keyId: \(self.parserManager.assertionInfo?.keyId ?? "nil")")
             
-            // 添加短暂延迟确保状态更新完成
+            // Add brief delay to ensure state update completion
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                print("   - 准备触发Sheet显示...")
-                print("   - 最终检查 parserManager.assertionInfo != nil: \(self.parserManager.assertionInfo != nil)")
+                print("   - Preparing to trigger Sheet display...")
+                print("   - Final check parserManager.assertionInfo != nil: \(self.parserManager.assertionInfo != nil)")
                 if let info = self.parserManager.assertionInfo {
-                    print("   - 最终检查 Key ID: \(info.keyId)")
+                    print("   - Final check Key ID: \(info.keyId)")
                 }
                 self.showAssertionParser = true
-                print("   - 显示解析器: 触发 (主线程)")
+                print("   - Display parser: Triggered (main thread)")
             }
         }
     }
@@ -600,17 +600,17 @@ struct CertificateParserView: View {
                         certificateVerificationResults(info)
                         certificateAppleKeys(info)
                     } else {
-                        Text("解析失败")
+                        Text("Parsing failed")
                             .foregroundColor(.red)
                     }
                 }
                 .padding()
             }
-            .navigationTitle("证书解析")
+            .navigationTitle("Certificate Parsing")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("关闭") { dismiss() }
+                    Button("Close") { dismiss() }
                 }
             }
         }
@@ -619,15 +619,15 @@ struct CertificateParserView: View {
     @ViewBuilder
     private func certificateBasicInfo(_ info: AttestationInfo) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("📜 证书解析结果")
+            Text("📜 Certificate Parsing Results")
                 .font(.title2)
                 .fontWeight(.semibold)
             
             parseItem("Key ID", info.keyId)
-            parseItem("证书大小", info.rawSize, "bytes")
-            parseItem("格式", info.format)
-            parseItem("CBOR类型", info.cborType)
-            parseItem("Base64预览", info.base64Preview)
+            parseItem("Certificate size", info.rawSize, "bytes")
+            parseItem("Format", info.format)
+            parseItem("CBOR type", info.cborType)
+            parseItem("Base64 preview", info.base64Preview)
         }
     }
     
@@ -636,14 +636,14 @@ struct CertificateParserView: View {
         VStack(alignment: .leading, spacing: 12) {
             Divider()
             
-            Text("🔍 验证结果")
+            Text("🔍 Verification Results")
                 .font(.headline)
             
-            parseItem("1. 签名验证", info.signatureStatus)
+            parseItem("1. Signature verification", info.signatureStatus)
             parseItem("2. Bundle ID", info.bundleId)
-            parseItem("3. 挑战验证", info.challengeVerification)
-            parseItem("4. 公钥提取", info.publicKeyExtracted)
-            parseItem("5. 设备认证", info.deviceAttestation)
+            parseItem("3. Challenge verification", info.challengeVerification)
+            parseItem("4. Public key extraction", info.publicKeyExtracted)
+            parseItem("5. Device attestation", info.deviceAttestation)
         }
     }
     
@@ -653,7 +653,7 @@ struct CertificateParserView: View {
             VStack(alignment: .leading, spacing: 16) {
                 Divider()
                 
-                Text("🔐 Apple证书公钥详情")
+                Text("🔐 Apple Certificate Public Key Details")
                     .font(.headline)
                     .foregroundColor(.blue)
                 
@@ -693,46 +693,46 @@ struct AssertionParserView: View {
                     // 添加调试信息
                     if let info = info {
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("🔐 断言解析结果")
+                            Text("🔐 Assertion Parsing Results")
                                 .font(.title2)
                                 .fontWeight(.semibold)
                             
                             parseItem("Key ID", info.keyId)
-                            parseItem("断言大小", info.assertionSize, "bytes")
-                            parseItem("原始数据大小", info.originalDataSize, "bytes")
-                            parseItem("原始数据预览", info.originalDataPreview)
-                            parseItem("数据哈希", info.dataHash)
+                            parseItem("Assertion size", info.assertionSize, "bytes")
+                            parseItem("Original data size", info.originalDataSize, "bytes")
+                            parseItem("Original data preview", info.originalDataPreview)
+                            parseItem("Data hash", info.dataHash)
                             
                             Divider()
                             
-                            Text("🔍 验证结果")
+                            Text("🔍 Verification Results")
                                 .font(.headline)
                             
-                            parseItem("签名验证", info.signatureVerification)
-                            parseItem("计数器检查", info.counterCheck)
-                            parseItem("时间戳检查", info.timestampCheck)
-                            parseItem("签名算法", info.signatureAlgorithm)
-                            parseItem("密钥使用", info.keyUsage)
+                            parseItem("Signature verification", info.signatureVerification)
+                            parseItem("Counter check", info.counterCheck)
+                            parseItem("Timestamp check", info.timestampCheck)
+                            parseItem("Signature algorithm", info.signatureAlgorithm)
+                            parseItem("Key usage", info.keyUsage)
                         }
                     } else {
                         VStack(spacing: 16) {
-                            Text("⚠️ 解析数据未接收")
+                            Text("⚠️ Parsing data not received")
                                 .font(.headline)
                                 .foregroundColor(.orange)
                             
-                            Text("可能的原因：")
+                            Text("Possible reasons:")
                                 .font(.subheadline)
                                 .fontWeight(.medium)
                             
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("• 数据传递过程中出现问题")
-                                Text("• SwiftUI 状态更新延迟")
-                                Text("• 解析器返回了空对象")
+                                Text("• Problem occurred during data transfer process")
+                                Text("• SwiftUI state update delay")
+                                Text("• Parser returned empty object")
                             }
                             .font(.caption)
                             .foregroundColor(.secondary)
                             
-                            Text("请检查 Xcode 控制台查看详细日志")
+                            Text("Please check Xcode console for detailed logs")
                                 .font(.caption)
                                 .foregroundColor(.blue)
                                 .padding(.top)
@@ -744,21 +744,21 @@ struct AssertionParserView: View {
                 }
                 .padding()
             }
-            .navigationTitle("断言解析")
+            .navigationTitle("Assertion Parsing")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("关闭") { dismiss() }
+                    Button("Close") { dismiss() }
                 }
             }
         }
         .onAppear {
             if let info = info {
-                print("✅ AssertionParserView: 收到有效的解析结果")
+                print("✅ AssertionParserView: Received valid parsing results")
                 print("   - Key ID: \(info.keyId)")
-                print("   - 签名验证: \(info.signatureVerification)")
+                print("   - Signature verification: \(info.signatureVerification)")
             } else {
-                print("❌ AssertionParserView: 收到空的解析结果")
+                print("❌ AssertionParserView: Received empty parsing results")
             }
         }
     }
@@ -788,7 +788,7 @@ struct AppleKeyInfoView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("证书 #\(index + 1)")
+            Text("Certificate #\(index + 1)")
                 .font(.subheadline)
                 .fontWeight(.semibold)
                 .foregroundColor(.primary)
@@ -803,16 +803,16 @@ struct AppleKeyInfoView: View {
     @ViewBuilder
     private var keyBasicInfo: some View {
         VStack(alignment: .leading, spacing: 4) {
-            parseItem("公钥类型", keyInfo.keyType)
-            parseItem("证书大小", "\(keyInfo.certificateSize) bytes")
-            parseItem("公钥大小", "\(keyInfo.keySize) bytes")
+            parseItem("Public key type", keyInfo.keyType)
+            parseItem("Certificate size", "\(keyInfo.certificateSize) bytes")
+            parseItem("Public key size", "\(keyInfo.keySize) bytes")
         }
     }
     
     @ViewBuilder
     private var hexRepresentationView: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("十六进制表示 (用于对比)")
+            Text("Hexadecimal representation (for comparison)")
                 .font(.caption)
                 .foregroundColor(.secondary)
             Text(keyInfo.hexRepresentation)
@@ -826,7 +826,7 @@ struct AppleKeyInfoView: View {
     @ViewBuilder
     private var base64PublicKeyView: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("完整公钥 (Base64) - 可用于验证对比")
+            Text("Complete public key (Base64) - Can be used for verification comparison")
                 .font(.caption)
                 .foregroundColor(.secondary)
             ScrollView(.horizontal, showsIndicators: false) {

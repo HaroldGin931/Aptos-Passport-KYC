@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>NSCameraUsageDescription</key>
-	<string>此应用需要访问相机进行人脸识别和护照扫描</string>
+	<string>This app needs camera access for face recognition and passport scanning</string>
 	<key>NFCReaderUsageDescription</key>
-	<string>用于验证护照真伪</string>
+	<string>For passport authentication verification</string>
 	<key>com.apple.developer.nfc.readersession.iso7816.select-identifiers</key>
 	<array>
 		<string>A0000002471001</string>

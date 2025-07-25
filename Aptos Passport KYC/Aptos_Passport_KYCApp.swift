@@ -13,8 +13,8 @@ struct Aptos_Passport_KYCApp: App {
         WindowGroup {
             ContentView()
                 .onAppear {
-                    // 应用启动时异步检查认证状态
-                    print("🚀 应用启动，开始检查认证状态...")
+                    // Asynchronously check authentication status when app starts
+                    print("🚀 App startup, starting authentication status check...")
                     AuthenticationStateManager.shared.refreshAuthenticationState()
                 }
         }

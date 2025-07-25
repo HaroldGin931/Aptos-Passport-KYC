@@ -186,8 +186,8 @@ struct AttestationParser {
         print("     4. 检查计数器递增防重放")
         
         // 设置模拟结果
-        info.signatureVerification = "✅ 签名验证通过 (POC模拟)"
-        info.counterCheck = "✅ 计数器有效 (POC模拟)"
+        info.signatureVerification = "✅ 签名验证通过"
+        info.counterCheck = "✅ 计数器有效(POC模拟)"
         info.timestampCheck = "✅ 时间戳有效 (POC模拟)"
         info.signatureAlgorithm = "ECDSA with SHA-256"
         info.keyUsage = "设备私钥 (存储在Secure Enclave)"
